@@ -1,0 +1,40 @@
+@startuml
+package domain{
+    class IdeaDirection{
+        str name
+        Chain chain_links
+    }
+    class Actor{
+        str name
+        core.User[] users
+        core.Group[] groups
+    }
+    class ChainLink{
+        Actor actor
+        int position_in_chain
+    }
+    class Chain{
+        ChainLink[] chain_links
+    }
+    class BaseIdeaEvent{
+        core.User
+        str comment
+    }
+    class AcceptIdeaEvent{
+    }
+    class RejectIdeaEvent{
+    }
+    class IdeaAuthor{
+        id
+        first_name
+        last_name
+    }
+    class Idea{
+        IdeaAuthor author
+        RichText body
+        IdeaDirection direction
+    }
+
+}
+
+@enduml
