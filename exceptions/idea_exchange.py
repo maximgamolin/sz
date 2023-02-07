@@ -12,3 +12,7 @@ class NoChainLinksInChain(Exception):
 
 class IncorrectChainLink(Exception):
     pass
+
+
+class ChainLinkCantBeDeleted(Exception):
+    pass

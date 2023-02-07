@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
 from domain.auth.core import User, Group
 from framework.data_logic_layer.meta import BaseMeta, MetaManipulation
+from exceptions.idea_exchange import ChainLinkCantBeDeleted
 
 
 @dataclass
@@ -44,9 +45,9 @@ class ChainLink(MetaManipulation):
     REJECT = "Отклонено"
 
     __slots__ = (
-        'chain_link_id', 'actor',
-        '_meta', 'name', 'is_technical',
-        'number_of_related_ideas'
+        'chain_link_id', '_actor',
+        '_meta', '_name', '_is_technical',
+        '_number_of_related_ideas'
     )
 
     @dataclass
@@ -64,9 +65,9 @@ class ChainLink(MetaManipulation):
             _meta_is_changed: bool = False,
     ):
         self.chain_link_id = chain_link_id
-        self.actor = actor
-        self.name = name
-        self.is_technical = is_technical
+        self._actor = actor
+        self._name = name
+        self._is_technical = is_technical
         # Вообще, можно словить гонку, надо по ходу версию добавлять, для оптимистичной блокировки
         self.number_of_related_ideas = number_of_related_ideas
         self._meta: ChainLink.Meta = ChainLink.Meta(
@@ -77,8 +78,9 @@ class ChainLink(MetaManipulation):
     def __eq__(self, other: 'ChainLink'):
         return (
             self.chain_link_id == other.chain_link_id and
-            self.actor == other.actor and
-            self.name == other.name
+            self._actor == other.actor and
+            self._name == other.name and
+            self.number_of_related_ideas == other.number_of_related_ideas
         )
 
     @classmethod
@@ -89,6 +91,7 @@ class ChainLink(MetaManipulation):
             is_technical=True,
             name=name,
             _meta_is_changed=True,
+            number_of_related_ideas=0
         )
 
     def is_new(self):
@@ -98,11 +101,34 @@ class ChainLink(MetaManipulation):
         self._meta.is_changed = True
 
     def set_as_deleted(self):
+        if self.number_of_related_ideas > 0:
+            raise ChainLinkCantBeDeleted()
         self._meta.is_deleted = True
         self._meta.is_changed = True
 
     def replace_id_from_meta(self):
         self.chain_link_id = self._meta.id_from_storage
+
+    def set_name(self, name: str) -> None:
+        self._name = name
+        self.set_for_change()
+
+    def get_name(self) -> str:
+        return self._name
+
+    def set_actor(self, actor: Actor) -> None:
+        self._actor = actor
+        self.set_for_change()
+
+    def get_actor(self) -> Actor:
+        return self._actor
+
+    def get_is_technical(self):
+        return self._is_technical
+
+    name = property(fget=get_name, fset=set_name)
+    actor = property(fget=get_actor, fset=set_actor)
+    is_technical = property(fget=get_is_technical)
 
 
 class Chain(MetaManipulation):
