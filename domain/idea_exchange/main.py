@@ -20,7 +20,19 @@ class IdeaAuthor(User):
 
 @dataclass
 class Manager(User):
-    pass
+    def __eq__(self, other: 'Manager'):
+        return self.user_id == other.user_id
+
+
+@dataclass
+class ManagerGroup(Group):
+    managers: list[Manager]
+
+    def manager_in(self, manager: Manager):
+        for i in self.managers:
+            if i == manager:
+                return True
+        return False
 
 
 @dataclass
@@ -31,12 +43,25 @@ class ChainEditor(User):
 @dataclass
 class Actor(MetaManipulation):
     actor_id: ActorID
-    users: list[User]
-    groups: list[Group]
+    managers: list[Manager]
+    groups: list[ManagerGroup]
     name: str
 
     def replace_id_from_meta(self):
         self.actor_id = self._meta.id_from_storage
+
+    def is_manager_in_admissible_managers(self, manager: Manager) -> bool:
+        return manager in self.managers
+
+    def is_manager_team_member(self, manager: Manager) -> bool:
+        for i in self.groups:
+            if i.manager_in(manager):
+                return True
+        return False
+
+    def is_manager_valid_actor(self, manager: Manager):
+        return self.is_manager_team_member(manager) or \
+                self.is_manager_team_member(manager)
 
 
 class ChainLink(MetaManipulation):
@@ -226,6 +251,18 @@ class Chain(MetaManipulation):
                 old_chain_link.set_as_deleted()
                 self.dropped_chain_links.append(old_chain_link)
 
+    def calc_next_chain_link(self, chain_link: ChainLink):
+        chain_links = list(self.chain_links)
+        try:
+            idx = chain_links.index(chain_link)
+        except ValueError:
+            raise IncorrectChainLink(
+                f"Звено {chain_link.chain_link_id}:{chain_link.name} не принадлежит этой цепочке"
+            )
+        if idx == len(chain_links) - 1:
+            return self.accept_chain_link
+        return chain_links[idx + 1]
+
 
 @dataclass
 class BaseIdeaEvent:
@@ -301,3 +338,14 @@ class Idea(MetaManipulation):
 
     def replace_id_from_meta(self):
         self.idea_id = self._meta.id_from_storage
+
+    def is_manager_valid_actor(self, manager: Manager) -> None:
+        self.current_chain_link.actor.is_manager_valid_actor(manager)
+
+    def move_to_next_chain_link(self) -> None:
+        self.current_chain_link = self.chain.calc_next_chain_link(
+            self.current_chain_link
+        )
+
+    def reject_idea(self):
+        self.current_chain_link = self.chain.reject_chain_link

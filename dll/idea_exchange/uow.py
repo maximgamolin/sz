@@ -1,8 +1,8 @@
 from framework.data_logic_layer.uow import BaseUnitOfWork
 from domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
-    ChainEditor, ChainLink, Actor
+    ChainEditor, ChainLink, Actor, Manager
 from domain.idea_exchange.types import ChainID
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO
+from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ManagerOO
 from cases.idea_exchange.dto import ChainLinkUserInputDTO, ActorUserInputDTO
 from dal.auth.qo import UserQO, GroupQO
 from domain.auth.core import User, Group
@@ -20,6 +20,9 @@ class IdeaUOW(BaseUnitOfWork):
         pass
 
     def fetch_idea(self, query_object: IdeaQO) -> Idea:
+        pass
+
+    def fetch_manager(self, query_object: ManagerQO) -> Manager:
         pass
 
 

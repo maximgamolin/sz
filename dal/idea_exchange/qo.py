@@ -21,3 +21,13 @@ class AuthorQO(ABSQueryObject):
 @dataclass
 class ChainEditorQO(ABSQueryObject):
     pass
+
+
+@dataclass
+class ManagerQO(ABSQueryObject):
+    pass
+
+
+@dataclass
+class ManagerOO(ABSQueryObject):
+    pass

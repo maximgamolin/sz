@@ -2,7 +2,7 @@ from domain.idea_exchange.main import Idea
 from domain.idea_exchange.types import IdeaID
 from typing import Type
 from dll.idea_exchange.uow import IdeaUOW
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO
+from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO, ManagerOO
 from exceptions.auth import PermissionDenied
 from exceptions.idea_exchange import IdeaIsNotEdiatable
 
@@ -51,5 +51,27 @@ class IdeaCase:
             idea.update(
                 body=body
             )
+            self.uow.add_idea_for_save(idea)
+            self.uow.commit()
+
+    def accept_idea(self, user_id: int, idea_id: int):
+        with self.uow:
+            manager_qo = ManagerQO()
+            manager = self.uow.fetch_manager(manager_qo)
+            idea_qo = IdeaQO()
+            idea = self.uow.fetch_idea(idea_qo)
+            idea.is_manager_valid_actor(manager)
+            idea.move_to_next_chain_link()
+            self.uow.add_idea_for_save(idea)
+            self.uow.commit()
+
+    def reject_idea(self):
+        with self.uow:
+            manager_qo = ManagerQO()
+            manager = self.uow.fetch_manager(manager_qo)
+            idea_qo = IdeaQO()
+            idea = self.uow.fetch_idea(idea_qo)
+            idea.is_manager_valid_actor(manager)
+            idea.reject_idea()
             self.uow.add_idea_for_save(idea)
             self.uow.commit()
