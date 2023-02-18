@@ -5,7 +5,7 @@ from domain.idea_exchange.main import Idea, Chain, IdeaAuthor, \
 from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID
 from tests.fakes.dll.uow import FakeUOW
 from tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
-    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory
+    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory, ManagerFactory
 from random import randrange
 from exceptions.auth import PermissionDenied
 from exceptions.idea_exchange import IdeaIsNotEdiatable
@@ -19,12 +19,14 @@ class FakeIdeaUOW(FakeUOW):
             chain=None,
             author=None,
             idea=None,
+            manager=None,
             **kwargs
     ):
         self.idea = None
         self.__chain = chain
         self.__author = author
         self.__idea = idea
+        self.__manager = manager
 
     def __call__(self, *args, **kwargs):
         return self
@@ -43,6 +45,9 @@ class FakeIdeaUOW(FakeUOW):
 
     def add_idea_for_save(self, idea):
         self.idea = idea
+
+    def fetch_manager(self, *args, **kwargs):
+        return self.__manager
 
 
 class TestIdeaExchangeCases(TestCase):
@@ -162,3 +167,20 @@ class TestIdeaExchangeCases(TestCase):
                 body=new_body,
                 idea_id=self.idea.idea_id
             )
+
+    def test_accept_idea_to_next_step(self):
+        manager = ManagerFactory.create_manager()
+        uow = FakeIdeaUOW(
+            chain=self.chain,
+            author=self.author,
+            manager=manager,
+            idea=self.idea
+        )
+
+        actor = ActorFactory.create_actor(managers=[manager])
+        self.chain_link1.actor = actor
+        case = IdeaCase(uow_cls=uow)
+        case.accept_idea(manager.user_id, self.idea.idea_id)
+        self.assertEqual(self.idea.current_chain_link, self.chain_link2)
+        self.assertTrue(self.idea._meta.is_changed)
+

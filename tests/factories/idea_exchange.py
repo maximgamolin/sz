@@ -3,7 +3,8 @@ from random import randrange
 from framework.test.utils import generate_random_string, Empty
 from domain.idea_exchange.types import ChainLinkID, ActorID, ChainID, IdeaID
 from domain.idea_exchange.main import Chain, ChainLink, Actor, ChainEditor,\
-    IdeaAuthor, Idea
+    IdeaAuthor, Idea, Manager, ManagerGroup
+from domain.auth.core import UserID, GroupID
 
 
 class ActorFactory:
@@ -12,13 +13,13 @@ class ActorFactory:
     def create_actor(
             actor_id=Empty(),
             name=Empty(),
-            users=Empty(),
+            managers=Empty(),
             groups=Empty()
     ) -> Actor:
         return Actor(
             actor_id=actor_id if not isinstance(actor_id, Empty) else ActorID(randrange(1, 100)),
             name=name if not isinstance(name, Empty) else generate_random_string(10),
-            users=users if not isinstance(users, Empty) else [],
+            managers=managers if not isinstance(managers, Empty) else [],
             groups=groups if not isinstance(groups, Empty) else []
         )
 
@@ -47,7 +48,7 @@ class ChainEditorFactory:
         user_id=Empty(),
     ) -> ChainEditor:
         return ChainEditor(
-            user_id=user_id if not isinstance(user_id, Empty) else randrange(1, 100)
+            user_id=user_id if not isinstance(user_id, Empty) else UserID(randrange(1, 100))
         )
 
 
@@ -101,4 +102,28 @@ class IdeaFactory:
             current_chain_link=current_chain_link,
             _meta_is_changed=meta_is_changed if not isinstance(meta_is_changed, Empty) else False,
             _meta_is_deleted=meta_is_deleted if not isinstance(meta_is_deleted, Empty) else False,
+        )
+
+
+class ManagerFactory:
+
+    @staticmethod
+    def create_manager(user_id=Empty()):
+        return Manager(
+            user_id=user_id if not isinstance(user_id, Empty) else UserID(randrange(1, 100))
+        )
+
+
+class ManagerGroupFactory:
+
+    @staticmethod
+    def create_manager_group(
+            name=Empty(),
+            group_id=Empty(),
+            managers=Empty()
+    ):
+        return ManagerGroup(
+            name=name if not isinstance(name, Empty) else generate_random_string(10),
+            group_id=group_id if not isinstance(group_id, Empty) else GroupID(randrange(1, 100)),
+            managers=managers if not isinstance(managers, Empty) else [],
         )

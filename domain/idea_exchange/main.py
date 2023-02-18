@@ -346,6 +346,7 @@ class Idea(MetaManipulation):
         self.current_chain_link = self.chain.calc_next_chain_link(
             self.current_chain_link
         )
+        self._meta.is_changed = True
 
     def reject_idea(self):
         self.current_chain_link = self.chain.reject_chain_link
