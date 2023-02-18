@@ -4,7 +4,7 @@ from typing import Type
 from dll.idea_exchange.uow import IdeaUOW
 from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO, ManagerOO
 from exceptions.auth import PermissionDenied
-from exceptions.idea_exchange import IdeaIsNotEdiatable
+from exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
 
 
 class IdeaCase:
@@ -60,7 +60,8 @@ class IdeaCase:
             manager = self.uow.fetch_manager(manager_qo)
             idea_qo = IdeaQO()
             idea = self.uow.fetch_idea(idea_qo)
-            idea.is_manager_valid_actor(manager)
+            if not idea.is_manager_valid_actor(manager):
+                raise HasNoPermissions('User cant manage this idea')
             idea.move_to_next_chain_link()
             self.uow.add_idea_for_save(idea)
             self.uow.commit()
@@ -71,7 +72,8 @@ class IdeaCase:
             manager = self.uow.fetch_manager(manager_qo)
             idea_qo = IdeaQO()
             idea = self.uow.fetch_idea(idea_qo)
-            idea.is_manager_valid_actor(manager)
+            if not idea.is_manager_valid_actor(manager):
+                raise HasNoPermissions('User cant manage this idea')
             idea.reject_idea()
             self.uow.add_idea_for_save(idea)
             self.uow.commit()

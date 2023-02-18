@@ -5,10 +5,11 @@ from domain.idea_exchange.main import Idea, Chain, IdeaAuthor, \
 from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID
 from tests.fakes.dll.uow import FakeUOW
 from tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
-    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory, ManagerFactory
+    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory, ManagerFactory, ManagerGroupFactory
+from framework.test.utils import generate_random_string
 from random import randrange
 from exceptions.auth import PermissionDenied
-from exceptions.idea_exchange import IdeaIsNotEdiatable
+from exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
 
 
 class FakeIdeaUOW(FakeUOW):
@@ -87,7 +88,7 @@ class TestIdeaExchangeCases(TestCase):
             author=self.author
         )
         case = IdeaCase(uow_cls=uow)
-        case.create_idea(user_id=1, body='123', chain_id=1)
+        case.create_idea(user_id=1, body=generate_random_string(10), chain_id=1)
         self.assertIsNotNone(uow.idea)
         self.assertIsInstance(uow.idea, Idea)
         self.assertEqual(uow.idea.author, self.author)
@@ -122,7 +123,7 @@ class TestIdeaExchangeCases(TestCase):
             author=self.author,
             idea=self.idea
         )
-        new_body = 'lalala'
+        new_body = generate_random_string(10)
         case = IdeaCase(uow_cls=uow)
         case.edit_idea(
             user_id=self.author.user_id,
@@ -139,7 +140,7 @@ class TestIdeaExchangeCases(TestCase):
             author=incorrect_author,
             idea=self.idea
         )
-        new_body = 'lalala'
+        new_body = generate_random_string(10)
         case = IdeaCase(uow_cls=uow)
         with self.assertRaises(PermissionDenied):
             case.edit_idea(user_id=incorrect_author.user_id, idea_id=self.idea.idea_id, body=new_body)
@@ -160,7 +161,7 @@ class TestIdeaExchangeCases(TestCase):
             idea=idea
         )
         case = IdeaCase(uow_cls=uow)
-        new_body = 'lalala'
+        new_body = generate_random_string(10)
         with self.assertRaises(IdeaIsNotEdiatable):
             case.edit_idea(
                 user_id=self.author.user_id,
@@ -184,3 +185,48 @@ class TestIdeaExchangeCases(TestCase):
         self.assertEqual(self.idea.current_chain_link, self.chain_link2)
         self.assertTrue(self.idea._meta.is_changed)
 
+    def test_accept_idea_to_last_step(self):
+        manager = ManagerFactory.create_manager()
+        self.idea.current_chain_link = self.chain_link2
+        uow = FakeIdeaUOW(
+            chain=self.chain,
+            author=self.author,
+            manager=manager,
+            idea=self.idea
+        )
+        actor = ActorFactory.create_actor(managers=[manager])
+        self.chain_link2.actor = actor
+        case = IdeaCase(uow_cls=uow)
+        case.accept_idea(manager.user_id, self.idea.idea_id)
+        self.assertEqual(self.idea.current_chain_link, self.chain.accept_chain_link)
+        self.assertTrue(self.idea._meta.is_changed)
+
+    def test_accept_idea_as_group_member(self):
+        self.assertEqual(self.idea.current_chain_link, self.chain_link1)
+        self.assertFalse(self.idea._meta.is_changed)
+        manager = ManagerFactory.create_manager()
+        manager_group = ManagerGroupFactory.create_manager_group(managers=[manager])
+        uow = FakeIdeaUOW(
+            chain=self.chain,
+            author=self.author,
+            manager=manager,
+            idea=self.idea
+        )
+        actor = ActorFactory.create_actor(groups=[manager_group])
+        self.chain_link1.actor = actor
+        case = IdeaCase(uow_cls=uow)
+        case.accept_idea(manager.user_id, self.idea.idea_id)
+        self.assertEqual(self.idea.current_chain_link, self.chain_link2)
+        self.assertTrue(self.idea._meta.is_changed)
+
+    def test_error_manager_is_not_actor(self):
+        manager = ManagerFactory.create_manager()
+        uow = FakeIdeaUOW(
+            chain=self.chain,
+            author=self.author,
+            manager=manager,
+            idea=self.idea
+        )
+        case = IdeaCase(uow_cls=uow)
+        with self.assertRaises(HasNoPermissions):
+            case.accept_idea(manager.user_id, self.idea.idea_id)

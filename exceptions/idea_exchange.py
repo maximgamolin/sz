@@ -16,3 +16,7 @@ class IncorrectChainLink(Exception):
 
 class ChainLinkCantBeDeleted(Exception):
     pass
+
+
+class HasNoPermissions(Exception):
+    pass

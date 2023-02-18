@@ -61,7 +61,7 @@ class Actor(MetaManipulation):
 
     def is_manager_valid_actor(self, manager: Manager):
         return self.is_manager_team_member(manager) or \
-                self.is_manager_team_member(manager)
+                self.is_manager_in_admissible_managers(manager)
 
 
 class ChainLink(MetaManipulation):
@@ -339,8 +339,8 @@ class Idea(MetaManipulation):
     def replace_id_from_meta(self):
         self.idea_id = self._meta.id_from_storage
 
-    def is_manager_valid_actor(self, manager: Manager) -> None:
-        self.current_chain_link.actor.is_manager_valid_actor(manager)
+    def is_manager_valid_actor(self, manager: Manager) -> bool:
+        return self.current_chain_link.actor.is_manager_valid_actor(manager)
 
     def move_to_next_chain_link(self) -> None:
         self.current_chain_link = self.chain.calc_next_chain_link(
