@@ -26,7 +26,7 @@
             <i class="bi bi-search"></i>
           </a>
         </li><!-- End Search Icon-->
-
+          <!--  ПОЛЬЗОВАТЕЛЬ -->
         <li class="nav-item dropdown">
 
           <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
@@ -223,6 +223,7 @@
 
           </ul><!-- End Profile Dropdown Items -->
         </li><!-- End Profile Nav -->
+          <!--  ПОЛЬЗОВАТЕЛЬ -->
 
       </ul>
     </nav><!-- End Icons Navigation -->
@@ -465,5 +466,10 @@
     </ul>
 
   </aside><!-- End Sidebar-->
-{% block content %}{% endblock %}
+    <main id="main" class="main">
+            {% block content %}{% endblock %}
+    </main>
+
+    </main>
+
 {% endblock %}
