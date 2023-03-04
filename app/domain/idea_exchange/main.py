@@ -1,11 +1,11 @@
-from enum import IntEnum
-from typing import Type, Optional, Iterable
-from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
 from dataclasses import dataclass
-from exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
+from typing import Optional, Iterable
+
 from domain.auth.core import User, Group
-from framework.data_logic_layer.meta import BaseMeta, MetaManipulation
+from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
 from exceptions.idea_exchange import ChainLinkCantBeDeleted
+from exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
+from framework.data_logic_layer.meta import BaseMeta, MetaManipulation
 
 
 @dataclass
@@ -264,23 +264,6 @@ class Chain(MetaManipulation):
         return chain_links[idx + 1]
 
 
-@dataclass
-class BaseIdeaEvent:
-    user: User
-    comment: str
-    award: int
-
-
-@dataclass
-class AcceptIdeaEvent(BaseIdeaEvent):
-    pass
-
-
-@dataclass
-class RejectIdeaEvent(BaseIdeaEvent):
-    pass
-
-
 class Idea(MetaManipulation):
 
     __slots__ = (
@@ -293,6 +276,7 @@ class Idea(MetaManipulation):
     def __init__(
             self,
             author: IdeaAuthor,
+            name: str,
             body: str,
             chain: Chain,
             current_chain_link: ChainLink,
@@ -305,6 +289,7 @@ class Idea(MetaManipulation):
         self.chain = chain
         self.idea_id = idea_id
         self.current_chain_link = current_chain_link
+        self.name = name
         self._meta = BaseMeta(
             is_deleted=_meta_is_deleted,
             is_changed=_meta_is_changed
@@ -312,13 +297,14 @@ class Idea(MetaManipulation):
 
     @classmethod
     def initialize_new_idea(
-            cls, author: IdeaAuthor, body: str, chain: Chain
+            cls, author: IdeaAuthor, body: str, chain: Chain, name: str
     ) -> 'Idea':
         idea = cls(
             body=body,
             author=author,
             chain=chain,
-            current_chain_link=chain.first_chain_link()
+            current_chain_link=chain.first_chain_link(),
+            name=name
         )
         idea._meta.is_changed = True
         idea._meta.is_deleted = False

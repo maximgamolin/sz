@@ -1,15 +1,15 @@
-from unittest import TestCase
-from cases.idea_exchange.idea import IdeaCase
-from domain.idea_exchange.main import Idea, Chain, IdeaAuthor, \
-    ChainLink, Actor, ChainEditor
-from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID
-from tests.fakes.dll.uow import FakeUOW
-from tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
-    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory, ManagerFactory, ManagerGroupFactory
-from framework.test.utils import generate_random_string
 from random import randrange
+from unittest import TestCase
+
+from cases.idea_exchange.idea import IdeaCase
+from domain.idea_exchange.main import Idea, IdeaAuthor
+from domain.idea_exchange.types import IdeaID
 from exceptions.auth import PermissionDenied
 from exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
+from framework.test.utils import generate_random_string
+from tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
+    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory, ManagerFactory, ManagerGroupFactory
+from tests.fakes.dll.uow import FakeUOW
 
 
 class FakeIdeaUOW(FakeUOW):
@@ -88,7 +88,12 @@ class TestIdeaExchangeCases(TestCase):
             author=self.author
         )
         case = IdeaCase(uow_cls=uow)
-        case.create_idea(user_id=1, body=generate_random_string(10), chain_id=1)
+        case.create_idea(
+            user_id=1,
+            body=generate_random_string(10),
+            chain_id=1,
+            name=generate_random_string(10)
+        )
         self.assertIsNotNone(uow.idea)
         self.assertIsInstance(uow.idea, Idea)
         self.assertEqual(uow.idea.author, self.author)
@@ -152,6 +157,7 @@ class TestIdeaExchangeCases(TestCase):
             body='123',
             chain=self.chain,
             current_chain_link=self.chain_link2,
+            name=generate_random_string(10),
             _meta_is_changed=False,
             _meta_is_deleted=False
         )

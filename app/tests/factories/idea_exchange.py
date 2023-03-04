@@ -1,10 +1,10 @@
 from random import randrange
 
-from framework.test.utils import generate_random_string, Empty
-from domain.idea_exchange.types import ChainLinkID, ActorID, ChainID, IdeaID
-from domain.idea_exchange.main import Chain, ChainLink, Actor, ChainEditor,\
-    IdeaAuthor, Idea, Manager, ManagerGroup
 from domain.auth.core import UserID, GroupID
+from domain.idea_exchange.main import Chain, ChainLink, Actor, ChainEditor, \
+    IdeaAuthor, Idea, Manager, ManagerGroup
+from domain.idea_exchange.types import ChainLinkID, ActorID, ChainID, IdeaID
+from framework.test.utils import generate_random_string, Empty
 
 
 class ActorFactory:
@@ -92,7 +92,8 @@ class IdeaFactory:
             idea_id=Empty(),
             body=Empty(),
             meta_is_changed=Empty(),
-            meta_is_deleted=Empty()
+            meta_is_deleted=Empty(),
+            name=Empty()
     ) -> Idea:
         return Idea(
             idea_id=idea_id if not isinstance(idea_id, Empty) else IdeaID(randrange(1, 100)),
@@ -100,6 +101,7 @@ class IdeaFactory:
             body=body if not isinstance(body, Empty) else generate_random_string(10),
             chain=chain,
             current_chain_link=current_chain_link,
+            name=name if not isinstance(name, Empty) else generate_random_string(10),
             _meta_is_changed=meta_is_changed if not isinstance(meta_is_changed, Empty) else False,
             _meta_is_deleted=meta_is_deleted if not isinstance(meta_is_deleted, Empty) else False,
         )

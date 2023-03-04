@@ -1,8 +1,10 @@
+from typing import Type
+
+from cases.idea_exchange.dto import IdeaUserDTO
+from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO
+from dll.idea_exchange.uow import IdeaUOW
 from domain.idea_exchange.main import Idea
 from domain.idea_exchange.types import IdeaID
-from typing import Type
-from dll.idea_exchange.uow import IdeaUOW
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO, ManagerOO
 from exceptions.auth import PermissionDenied
 from exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
 
@@ -12,7 +14,13 @@ class IdeaCase:
     def __init__(self, uow_cls: Type[IdeaUOW]):
         self.uow = uow_cls()
 
-    def create_idea(self, user_id: int, body: str, chain_id: int) -> None:
+    def my_ideas(self, author_id, offset: int, limit: int) -> list[IdeaUserDTO]:
+        with self.uow:
+            idea_qo = IdeaQO()
+            ideas = self.uow.fetch_ideas(idea_qo)
+            return [self.uow.convert_idea_to_output(i) for i in ideas]
+
+    def create_idea(self, user_id: int, body: str, chain_id: int, name: str) -> None:
         with self.uow:
             chain_qo = ChainQO()
             author_qo = AuthorQO()
@@ -21,7 +29,8 @@ class IdeaCase:
             idea = Idea.initialize_new_idea(
                     body=body,
                     author=author,
-                    chain=chain
+                    chain=chain,
+                    name=name
                 )
             self.uow.add_idea_for_save(idea=idea)
             self.uow.commit()
