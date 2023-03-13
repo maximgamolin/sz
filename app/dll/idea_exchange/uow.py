@@ -3,8 +3,8 @@ from typing import Optional
 from cases.idea_exchange.dto import ChainLinkUserInputDTO, ActorUserInputDTO, IdeaUserDTO
 from dal.auth.qo import UserQO, GroupQO
 from dal.idea_exchange.oo import IdeaOO
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO
-from dal.idea_exchange.repo import IdeaRepository
+from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO
+from dal.idea_exchange.repo import IdeaRepository, ChainRepository
 from domain.auth.core import User, Group
 from domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor, Manager
@@ -15,9 +15,11 @@ class IdeaUOW(BaseUnitOfWork):
 
     def __init__(
             self,
-            idea_repo_cls=IdeaRepository
+            idea_repo_cls=IdeaRepository,
+            chain_repo_cls=ChainRepository
     ):
         self.idea_repo = idea_repo_cls(None)
+        self.chain_repo = chain_repo_cls(None)
 
 
     def add_idea_for_save(self, idea: Idea):
@@ -38,7 +40,10 @@ class IdeaUOW(BaseUnitOfWork):
     def fetch_ideas(self, query_object: IdeaQO, order_object: Optional[IdeaOO] = None) -> list[Idea]:
         ideas_dtos = self.idea_repo.fetch_many(filter_params=query_object, order_params=order_object)
         for idea_dto in ideas_dtos:
-            chian =
+            chain_qo = ChainQO(chain_id=idea_dto.chain_id)
+            chian_dto = self.chain_repo.fetch_one(filter_params=query_object)
+            actor_qo = ActorQO(actor_id=chian_dto.actor_id)
+
 
     def convert_idea_to_output(self, idea: Idea) -> IdeaUserDTO:
         pass

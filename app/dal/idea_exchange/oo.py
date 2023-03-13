@@ -12,4 +12,5 @@ class IdeaOO(ABSOrderObject):
 
 @dataclass
 class ChainOO(ABSOrderObject):
-    pass
+    created_at: Optional[Union[datetime, Empty]] = Empty()
+

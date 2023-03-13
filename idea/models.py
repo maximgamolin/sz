@@ -20,6 +20,7 @@ class ChainLink(BaseModel):
 class Chain(BaseModel):
 
     author = models.ForeignKey('accounts.CustomUser', verbose_name='Автор', on_delete=models.CASCADE)
+    actor = models.ForeignKey('idea.Actor', verbose_name='Актор', on_delete=models.CASCADE)
     reject_chain_link = models.ForeignKey(
         'idea.ChainLink',
         verbose_name='Звено для отклоненных',
