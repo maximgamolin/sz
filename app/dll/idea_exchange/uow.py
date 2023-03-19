@@ -42,7 +42,7 @@ class IdeaUOW(BaseUnitOfWork):
         ideas_dtos = self.idea_repo.fetch_many(filter_params=query_object, order_params=order_object)
         for idea_dto in ideas_dtos:
             chain_qo = ChainQO(chain_id=idea_dto.chain_id)
-            chian_dto = self.chain_repo.fetch_one(filter_params=query_object)
+            chian_dto = self.chain_repo.fetch_one(filter_params=chain_qo)
             actor_qo = ActorQO(actor_id=chian_dto.actor_id)
             actor_dto = self.actor_repo.fetch_one(filter_params=actor_qo)
 
