@@ -1,13 +1,30 @@
 import abc
-from typing import Generic, Iterable, Optional, TypeVar
+from typing import Generic, Iterable, Optional, TypeVar, Union
 
-from framework.data_access_layer.basic import EntityTypeVar
-from framework.mapper import ABSMapper
-from framework.data_access_layer.query_object import ABSQueryObject, ABSOrderObject
 from exceptions.orm import NotFoundException
+from framework.data_access_layer.basic import EntityTypeVar
+from framework.data_access_layer.query_object import ABSQueryObject, ABSOrderObject
+from framework.domain.abs import IDTO, IEntity
+from framework.mapper import ABSMapper
 
 ModelEntityMapperClass = TypeVar('ModelEntityMapperClass', bound=ABSMapper)
+ORMModel = TypeVar('ORMModel')
 ISessionTypeVar = TypeVar('ISessionTypeVar')
+
+
+class NoQueryBuilderRepositoryMixin:
+
+    @abc.abstractmethod
+    def __orm_to_dto(self, orm_model: ORMModel) -> Union[IDTO, IEntity]:
+        pass
+
+    @abc.abstractmethod
+    def __qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> dict:
+        pass
 
 
 class ABSRepository(abc.ABC):

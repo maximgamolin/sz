@@ -4,7 +4,7 @@ from cases.idea_exchange.dto import ChainLinkUserInputDTO, ActorUserInputDTO, Id
 from dal.auth.qo import UserQO, GroupQO
 from dal.idea_exchange.oo import IdeaOO
 from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO
-from dal.idea_exchange.repo import IdeaRepository, ChainRepository
+from dal.idea_exchange.repo import IdeaRepository, ChainRepository, ActorRepository
 from domain.auth.core import User, Group
 from domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor, Manager
@@ -16,11 +16,12 @@ class IdeaUOW(BaseUnitOfWork):
     def __init__(
             self,
             idea_repo_cls=IdeaRepository,
-            chain_repo_cls=ChainRepository
+            chain_repo_cls=ChainRepository,
+            actor_repo_cls=ActorRepository
     ):
         self.idea_repo = idea_repo_cls(None)
         self.chain_repo = chain_repo_cls(None)
-
+        self.actor_repo = ActorRepository(None)
 
     def add_idea_for_save(self, idea: Idea):
         pass
@@ -43,6 +44,7 @@ class IdeaUOW(BaseUnitOfWork):
             chain_qo = ChainQO(chain_id=idea_dto.chain_id)
             chian_dto = self.chain_repo.fetch_one(filter_params=query_object)
             actor_qo = ActorQO(actor_id=chian_dto.actor_id)
+            actor_dto = self.actor_repo.fetch_one(filter_params=actor_qo)
 
 
     def convert_idea_to_output(self, idea: Idea) -> IdeaUserDTO:
@@ -84,7 +86,7 @@ class ChainUOW(BaseUnitOfWork):
 
         return Actor(
             name=actor_user_input.name,
-            users=users,
+            managers=users,
             groups=groups
         )
 

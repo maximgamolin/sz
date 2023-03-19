@@ -1,18 +1,18 @@
-from typing import Generic, Optional, Iterable
+from typing import Optional
 
-from dal.idea_exchange.dto import IdeaDtoFromOrm, ChainDtoFromOrm
-from dal.idea_exchange.oo import IdeaOO, ChainOO
-from dal.idea_exchange.qo import IdeaQO, ChainQO
+from dal.idea_exchange.dto import IdeaDtoFromOrm, ChainDtoFromOrm, ActorDtoFromOrm
+from dal.idea_exchange.oo import IdeaOO, ChainOO, ActorOO
+from dal.idea_exchange.qo import IdeaQO, ChainQO, ActorQO
 from domain.auth.core import UserID
 from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
-from exceptions.orm import NotFoundException
-from framework.data_access_layer.basic import EntityTypeVar
 from framework.data_access_layer.query_object import Empty
-from framework.data_access_layer.repository import ABSRepository
-from idea.models import Idea, Chain
+from framework.data_access_layer.vendor.django.repository import DjangoRepository
+from idea.models import Idea, Chain, Actor
 
 
-class IdeaRepository(ABSRepository):
+class IdeaRepository(DjangoRepository):
+
+    model = Idea
 
     def __qo_to_filter_params(self, filter_params: IdeaQO) -> dict:
         filter_params_for_orm = {}
@@ -38,7 +38,7 @@ class IdeaRepository(ABSRepository):
             order_params_for_orm['created_at'] = order_params.created_at
         return order_params_for_orm
 
-    def __idea_orm_to_idea_dto(self, idea: Idea) -> IdeaDtoFromOrm:
+    def __orm_to_dto(self, idea: Idea) -> IdeaDtoFromOrm:
         return IdeaDtoFromOrm(
             idea_id=IdeaID(idea.id),
             author_id=UserID(idea.author_id),
@@ -51,49 +51,10 @@ class IdeaRepository(ABSRepository):
             updated_at=idea.updated_at
         )
 
-    def exists(self, filter_params: Optional[IdeaQO]) -> bool:
-        pass
 
-    def count(self, filter_params: Optional[IdeaQO] = None) -> int:
-        pass
+class ChainRepository(DjangoRepository):
 
-    def fetch_one(
-            self,
-            filter_params: Optional[IdeaQO] = None,
-            order_params: Optional[IdeaOO] = None,
-            raise_if_empty: bool = True) -> Optional[IdeaDtoFromOrm] | NotFoundException:
-        pass
-
-    def fetch_many(
-            self,
-            filter_params: Optional[IdeaQO] = None,
-            order_params: Optional[IdeaOO] = None,
-            offset: int = 0, limit: Optional[int] = None,
-            chunk_size: int = 1000) -> Iterable[IdeaDtoFromOrm]:
-        if filter_params:
-            filter_params_for_orm = self.__qo_to_filter_params(filter_params)
-        else:
-            filter_params_for_orm = {}
-        if order_params:
-            order_params_for_orm = self.__oo_to_order_params(order_params)
-        else:
-            order_params_for_orm = {}
-        orm_ideas = Idea.objects.filter(
-            **filter_params_for_orm
-        ).order_by(
-            **order_params_for_orm
-        ).iterator(chunk_size=chunk_size)
-        for orm_idea in orm_ideas:
-            yield self.__idea_orm_to_idea_dto(orm_idea)
-
-    def add(self, domain_model: Generic[EntityTypeVar]) -> None:
-        pass
-
-    def update_one(self, domain_model: Generic[EntityTypeVar]) -> None:
-        pass
-
-
-class ChainRepository(ABSRepository):
+    model = Chain
 
     def __qo_to_filter_params(self, filter_params: ChainQO) -> dict:
         filter_params_for_orm = {}
@@ -114,7 +75,7 @@ class ChainRepository(ABSRepository):
             order_params_for_orm['created_at'] = order_params.created_at
         return order_params_for_orm
 
-    def __chan_orm_to_chain_dto(self, chain: Chain) -> ChainDtoFromOrm:
+    def __orm_to_dto(self, chain: Chain) -> ChainDtoFromOrm:
         return ChainDtoFromOrm(
             chain_id=ChainID(chain.id),
             actor_id=ActorID(chain.actor_id),
@@ -126,46 +87,27 @@ class ChainRepository(ABSRepository):
             updated_at=chain.updated_at
         )
 
-    def exists(self, filter_params: Optional[ChainQO]) -> bool:
-        pass
 
-    def count(self, filter_params: Optional[ChainQO] = None) -> int:
-        pass
+class ActorRepository(DjangoRepository):
 
-    def fetch_one(
-            self,
-            filter_params: Optional[ChainQO] = None,
-            order_params: Optional[ChainOO] = None,
-            raise_if_empty: bool = True) -> Optional[ChainDtoFromOrm] | NotFoundException:
-        if filter_params:
-            filter_params_for_orm = self.__qo_to_filter_params(filter_params)
-        else:
-            filter_params_for_orm = {}
-        if order_params:
-            order_params_for_orm = self.__oo_to_order_params(order_params)
-        else:
-            order_params_for_orm = {}
-        orm_chan = Chain.objects.filter(
-            **filter_params_for_orm
-        ).order_by(
-            **order_params_for_orm
-        ).first()
-        if not orm_chan:
-            return
-        return self.__chan_orm_to_chain_dto(orm_chan)
+    model = Actor
 
+    def __orm_to_dto(self, orm_model: Actor) -> ActorDtoFromOrm:
+        return ActorDtoFromOrm(
+            actor_id=orm_model.id,
+            name=orm_model.name
+        )
 
-    def fetch_many(
-            self,
-            filter_params: Optional[ChainQO] = None,
-            order_params: Optional[ChainOO] = None,
-            offset: int = 0,
-            limit: Optional[int] = None,
-            chunk_size: int = 1000) -> Iterable[EntityTypeVar]:
-        pass
+    def __qo_to_filter_params(self, filter_params: Optional[ActorQO]) -> dict:
+        filter_params_for_orm = {}
+        if filter_params.name is not Empty():
+            filter_params_for_orm['name'] = filter_params.name
+        if filter_params.actor_id is not Empty():
+            filter_params_for_orm['id'] = filter_params.actor_id
+        return filter_params_for_orm
 
-    def add(self, domain_model: Generic[EntityTypeVar]) -> None:
-        pass
-
-    def update_one(self, domain_model: Generic[EntityTypeVar]) -> None:
-        pass
+    def __oo_to_order_params(self, order_params: Optional[ActorOO]) -> dict:
+        order_params_for_orm = {}
+        if order_params.created_at is not Empty():
+            order_params_for_orm['created_at'] = order_params.created_at
+        return order_params_for_orm

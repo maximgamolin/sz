@@ -28,3 +28,9 @@ class ChainDtoFromOrm:
     is_deleted: bool
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass
+class ActorDtoFromOrm:
+    actor_id: ActorID
+    name: str

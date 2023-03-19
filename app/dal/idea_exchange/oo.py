@@ -14,3 +14,7 @@ class IdeaOO(ABSOrderObject):
 class ChainOO(ABSOrderObject):
     created_at: Optional[Union[datetime, Empty]] = Empty()
 
+
+@dataclass
+class ActorOO(ABSOrderObject):
+    created_at: Optional[Union[datetime, Empty]] = Empty()
