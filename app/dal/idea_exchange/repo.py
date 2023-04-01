@@ -5,9 +5,9 @@ from dal.idea_exchange.oo import IdeaOO, ChainOO, ActorOO
 from dal.idea_exchange.qo import IdeaQO, ChainQO, ActorQO
 from domain.auth.core import UserID
 from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
-from framework.data_access_layer.query_object import Empty
+from framework.data_access_layer.values import Empty
 from framework.data_access_layer.vendor.django.repository import DjangoRepository
-from idea.models import Idea, Chain, Actor
+from idea.models import Idea, Chain, Actor, ChainLink
 
 
 class IdeaRepository(DjangoRepository):
@@ -32,10 +32,10 @@ class IdeaRepository(DjangoRepository):
             filter_params_for_orm['is_deleted'] = filter_params.is_deleted
         return filter_params_for_orm
 
-    def __oo_to_order_params(self, order_params: IdeaOO) -> dict:
-        order_params_for_orm = {}
+    def __oo_to_order_params(self, order_params: IdeaOO) -> list:
+        order_params_for_orm = []
         if order_params.created_at is not Empty():
-            order_params_for_orm['created_at'] = order_params.created_at
+            order_params_for_orm.append('created_at')
         return order_params_for_orm
 
     def __orm_to_dto(self, idea: Idea) -> IdeaDtoFromOrm:
@@ -69,10 +69,10 @@ class ChainRepository(DjangoRepository):
         if filter_params.is_deleted is not Empty():
             filter_params_for_orm['is_deleted'] = filter_params.is_deleted
 
-    def __oo_to_order_params(self, order_params: ChainOO) -> dict:
-        order_params_for_orm = {}
+    def __oo_to_order_params(self, order_params: ChainOO) -> list:
+        order_params_for_orm = []
         if order_params.created_at is not Empty():
-            order_params_for_orm['created_at'] = order_params.created_at
+            order_params_for_orm.append('created_at')
         return order_params_for_orm
 
     def __orm_to_dto(self, chain: Chain) -> ChainDtoFromOrm:
@@ -88,6 +88,20 @@ class ChainRepository(DjangoRepository):
         )
 
 
+class ChainLinkDjangoRepository(DjangoRepository):
+
+    @abc.abstractmethod
+    def __orm_to_dto(self, orm_model: ChainLink) -> Union[IDTO, IEntity]:
+        pass
+
+    @abc.abstractmethod
+    def __qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
+        pass
+
 class ActorRepository(DjangoRepository):
 
     model = Actor
@@ -95,7 +109,9 @@ class ActorRepository(DjangoRepository):
     def __orm_to_dto(self, orm_model: Actor) -> ActorDtoFromOrm:
         return ActorDtoFromOrm(
             actor_id=orm_model.id,
-            name=orm_model.name
+            name=orm_model.name,
+            manager_ids=orm_model.managers.values_list('id', flat=True),
+            groups_ids=orm_model.groups.values_list('id', flat=True)
         )
 
     def __qo_to_filter_params(self, filter_params: Optional[ActorQO]) -> dict:
@@ -106,8 +122,8 @@ class ActorRepository(DjangoRepository):
             filter_params_for_orm['id'] = filter_params.actor_id
         return filter_params_for_orm
 
-    def __oo_to_order_params(self, order_params: Optional[ActorOO]) -> dict:
-        order_params_for_orm = {}
+    def __oo_to_order_params(self, order_params: Optional[ActorOO]) -> list:
+        order_params_for_orm = []
         if order_params.created_at is not Empty():
-            order_params_for_orm['created_at'] = order_params.created_at
+            order_params_for_orm.append('created_at')
         return order_params_for_orm

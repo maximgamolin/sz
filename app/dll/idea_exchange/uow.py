@@ -1,13 +1,18 @@
 from typing import Optional
 
 from cases.idea_exchange.dto import ChainLinkUserInputDTO, ActorUserInputDTO, IdeaUserDTO
-from dal.auth.qo import UserQO, GroupQO
-from dal.idea_exchange.oo import IdeaOO
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO
+from dal.auth.dto import SiteGroupDalDto
+from dal.auth.qo import UserQO, SiteGroupQO
+from dal.auth.repo import UserRepository, SiteGroupRepository
+from dal.idea_exchange.dto import ActorDtoFromOrm
+from dal.idea_exchange.oo import IdeaOO, ChainLinkOO
+from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO, \
+    ChainLinkQO
 from dal.idea_exchange.repo import IdeaRepository, ChainRepository, ActorRepository
 from domain.auth.core import User, Group
 from domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
-    ChainEditor, ChainLink, Actor, Manager
+    ChainEditor, ChainLink, Actor, Manager, ManagerGroup
+from framework.data_access_layer.query_object.values import IN
 from framework.data_logic_layer.uow import BaseUnitOfWork
 
 
@@ -17,11 +22,15 @@ class IdeaUOW(BaseUnitOfWork):
             self,
             idea_repo_cls=IdeaRepository,
             chain_repo_cls=ChainRepository,
-            actor_repo_cls=ActorRepository
+            actor_repo_cls=ActorRepository,
+            user_repo_cls=UserRepository,
+            group_repo_cls=SiteGroupRepository
     ):
         self.idea_repo = idea_repo_cls(None)
         self.chain_repo = chain_repo_cls(None)
-        self.actor_repo = ActorRepository(None)
+        self.actor_repo = actor_repo_cls(None)
+        self.user_repo = user_repo_cls(None)
+        self.grop_repo = group_repo_cls(None)
 
     def add_idea_for_save(self, idea: Idea):
         pass
@@ -38,13 +47,43 @@ class IdeaUOW(BaseUnitOfWork):
     def fetch_manager(self, query_object: ManagerQO) -> Manager:
         pass
 
+    def build_group(self, group_dto: SiteGroupDalDto) -> ManagerGroup:
+        user_qo = UserQO(user_id=IN(group_dto.users_ids_in_group))
+        users = self.user_repo.fetch_many(filter_params=user_qo)
+        managers = [Manager.from_user(i) for i in users]
+        return ManagerGroup(
+            group_id=group_dto.group_id,
+            name=group_dto.name,
+            managers=managers,
+        )
+
+    def fetch_actor(self, actor_qo: ActorQO) -> Actor:
+        actor_dto: ActorDtoFromOrm = self.actor_repo.fetch_one(filter_params=actor_qo)
+        group_qo = SiteGroupQO(group_id=IN(actor_dto.groups_ids))
+        groups_dtos = self.grop_repo.fetch_many(filter_params=group_qo)
+        manager_groups = [self.build_group(i) for i in groups_dtos]
+        user_qo = UserQO(user_id=IN(actor_dto.manager_ids))
+        users = self.user_repo.fetch_many(filter_params=user_qo)
+        managers = [Manager.from_user(i) for i in users]
+        return Actor(
+            actor_id=actor_dto.actor_id,
+            name=actor_dto.name,
+            managers=managers,
+            groups=manager_groups
+        )
+
+    def fetch_chain_link(self, chain_link_qo: ChainLinkQO, chain_link_oo: Optional[ChainLinkOO] = None):
+        chain_links_dtos
+        actor_qo = ActorQO(actor_id=chain_dto.actor_id)
+        actor = self.fetch_actor(actor_qo)
+
+
     def fetch_ideas(self, query_object: IdeaQO, order_object: Optional[IdeaOO] = None) -> list[Idea]:
         ideas_dtos = self.idea_repo.fetch_many(filter_params=query_object, order_params=order_object)
         for idea_dto in ideas_dtos:
             chain_qo = ChainQO(chain_id=idea_dto.chain_id)
-            chian_dto = self.chain_repo.fetch_one(filter_params=chain_qo)
-            actor_qo = ActorQO(actor_id=chian_dto.actor_id)
-            actor_dto = self.actor_repo.fetch_one(filter_params=actor_qo)
+            chain_dto = self.chain_repo.fetch_one(filter_params=chain_qo)
+
 
 
     def convert_idea_to_output(self, idea: Idea) -> IdeaUserDTO:
@@ -63,7 +102,7 @@ class ChainUOW(BaseUnitOfWork):
         # TODO Вынести в класс-извлекатор auth
         pass
 
-    def fetch_group(self, query_object: GroupQO) -> Group:
+    def fetch_group(self, query_object: SiteGroupQO) -> Group:
         # TODO Вынести в класс-извлекатор auth
         pass
 
@@ -80,7 +119,7 @@ class ChainUOW(BaseUnitOfWork):
 
         groups = []
         for group_id in actor_user_input.groups_ids:
-            group_qo = GroupQO()
+            group_qo = SiteGroupQO()
             group = self.fetch_group(query_object=group_qo)
             groups.append(group)
 

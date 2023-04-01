@@ -23,6 +23,12 @@ class Manager(User):
     def __eq__(self, other: 'Manager'):
         return self.user_id == other.user_id
 
+    @classmethod
+    def from_user(cls, user: User):
+        return Manager(
+            user_id=user.user_id
+        )
+
 
 @dataclass
 class ManagerGroup(Group):
@@ -37,7 +43,12 @@ class ManagerGroup(Group):
 
 @dataclass
 class ChainEditor(User):
-    pass
+
+    @classmethod
+    def from_user(cls, user: User):
+        return Manager(
+            user_id=user.user_id
+        )
 
 
 @dataclass

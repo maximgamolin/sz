@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from domain.auth.core import UserID
+from domain.auth.core import UserID, GroupID
 from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
 
 
@@ -34,3 +34,10 @@ class ChainDtoFromOrm:
 class ActorDtoFromOrm:
     actor_id: ActorID
     name: str
+    groups_ids: list[GroupID]
+    manager_ids: list[UserID]
+
+
+@dataclass
+class ChainLinkDalDto:
+

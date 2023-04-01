@@ -23,7 +23,7 @@ class NoQueryBuilderRepositoryMixin:
         pass
 
     @abc.abstractmethod
-    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> dict:
+    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
         pass
 
 

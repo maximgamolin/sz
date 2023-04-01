@@ -30,11 +30,11 @@ class DjangoRepository(ABSRepository, NoQueryBuilderRepositoryMixin, ABC):
         if order_params:
             order_params_for_orm = self.__oo_to_order_params(order_params)
         else:
-            order_params_for_orm = {}
+            order_params_for_orm = []
         orm_chan = self.model.objects.filter(
             **filter_params_for_orm
         ).order_by(
-            **order_params_for_orm
+            *order_params_for_orm
         ).first()
         if not orm_chan:
             return
@@ -55,11 +55,11 @@ class DjangoRepository(ABSRepository, NoQueryBuilderRepositoryMixin, ABC):
         if order_params:
             order_params_for_orm = self.__oo_to_order_params(order_params)
         else:
-            order_params_for_orm = {}
+            order_params_for_orm = []
         orm_ideas = self.model.objects.filter(
             **filter_params_for_orm
         ).order_by(
-            **order_params_for_orm
+            *order_params_for_orm
         ).iterator(chunk_size=chunk_size)
         for orm_idea in orm_ideas:
             yield self.__orm_to_dto(orm_idea)
