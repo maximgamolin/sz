@@ -29,6 +29,7 @@ class ChainQO(ABSQueryObject):
 
 @dataclass
 class ChainLinkQO(ABSQueryObject):
+    chain_link_id: Optional[Union[ChainLinkID, Empty, QueryParamComparison]] = Empty()
     chain_id: Optional[Union[ChainID, Empty, QueryParamComparison]] = Empty()
     is_technical: Optional[Union[bool, Empty, QueryParamComparison]] = Empty()
     actor_id: Optional[Union[ActorID, Empty, QueryParamComparison]] = Empty()

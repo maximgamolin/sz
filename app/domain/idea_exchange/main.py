@@ -17,6 +17,11 @@ class IdeaAuthor(User):
     def can_edit_idea(self, idea: 'Idea'):
         return idea.author == self
 
+    @classmethod
+    def from_user(cls, user: User):
+        return Manager(
+            user_id=user.user_id
+        )
 
 @dataclass
 class Manager(User):
@@ -274,6 +279,15 @@ class Chain(MetaManipulation):
             return self.accept_chain_link
         return chain_links[idx + 1]
 
+    def chain_link_by_id(self, chain_link_id: ChainLinkID) -> Optional[ChainLink]:
+        if self.accept_chain_link.chain_link_id == chain_link_id:
+            return self.accept_chain_link
+        if self.reject_chain_link.chain_link_id == chain_link_id:
+            return self.reject_chain_link
+        for i in self.chain_links:
+            if i.chain_link_id == chain_link_id:
+                return i
+
 
 class Idea(MetaManipulation):
 
@@ -347,3 +361,12 @@ class Idea(MetaManipulation):
 
     def reject_idea(self):
         self.current_chain_link = self.chain.reject_chain_link
+
+    def is_chain_link_current(self, chain_link: ChainLink):
+        return self.current_chain_link.chain_link_id == chain_link.chain_link_id
+
+    def is_accepted(self):
+        return self.current_chain_link.chain_link_id == self.chain.accept_chain_link.chain_link_id
+
+    def is_rejected(self):
+        return self.current_chain_link.chain_link_id == self.chain.reject_chain_link.chain_link_id

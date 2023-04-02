@@ -1,11 +1,9 @@
-from domain.idea_exchange.main import Idea, Chain
-from domain.idea_exchange.types import IdeaID
 from typing import Type
+
+from cases.idea_exchange.dto import ChainLinkUiDto
+from dal.idea_exchange.qo import ChainEditorQO
 from dll.idea_exchange.uow import ChainUOW
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO
-from exceptions.auth import PermissionDenied
-from exceptions.idea_exchange import IdeaIsNotEdiatable
-from cases.idea_exchange.dto import ChainLinkUserInputDTO
+from domain.idea_exchange.main import Chain
 
 
 class ChainCase:
@@ -17,7 +15,7 @@ class ChainCase:
             self,
             user_id: int,
             chain_name: str,
-            user_chain_links: list[ChainLinkUserInputDTO]
+            user_chain_links: list[ChainLinkUiDto]
     ):
         with self.uow:
             chain_editor_qo = ChainEditorQO()

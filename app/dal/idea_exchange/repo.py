@@ -1,12 +1,7 @@
-from typing import Optional
-
-from dal.idea_exchange.dto import IdeaDtoFromOrm, ChainDtoFromOrm, ActorDtoFromOrm
-from dal.idea_exchange.oo import IdeaOO, ChainOO, ActorOO
-from dal.idea_exchange.qo import IdeaQO, ChainQO, ActorQO
+from dal.idea_exchange.dto import IdeaDalDto, ChainDalDto, ActorDalDto, ChainLinkDalDto
 from domain.auth.core import UserID
 from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
-from framework.data_access_layer.values import Empty
-from framework.data_access_layer.vendor.django.repository import DjangoRepository
+from framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
 from idea.models import Idea, Chain, Actor, ChainLink
 
 
@@ -14,32 +9,36 @@ class IdeaRepository(DjangoRepository):
 
     model = Idea
 
-    def __qo_to_filter_params(self, filter_params: IdeaQO) -> dict:
-        filter_params_for_orm = {}
-        if filter_params.author_id is not Empty():
-            filter_params_for_orm['author_id'] = int(filter_params.author_id)
-        if filter_params.idea_id is not Empty():
-            filter_params_for_orm['id'] = int(filter_params.idea_id)
-        if filter_params.name is not Empty():
-            filter_params_for_orm['name'] = filter_params.name
-        if filter_params.chain_id is not Empty():
-            filter_params_for_orm['chain_id'] = int(filter_params.chain_id)
-        if filter_params.current_chain_link_id is not Empty():
-            filter_params_for_orm['current_chain_link_id'] = int(filter_params.current_chain_link_id)
-        if filter_params.current_chain_link_id is not Empty():
-            filter_params_for_orm['current_chain_link_id'] = int(filter_params.current_chain_link_id)
-        if filter_params.is_deleted is not Empty():
-            filter_params_for_orm['is_deleted'] = filter_params.is_deleted
-        return filter_params_for_orm
+    @property
+    def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        return [
+            QoOrmMapperLine(orm_field_name='id',
+                            qo_field_name='idea_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='author_id',
+                            qo_field_name='author_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='name',
+                            qo_field_name='name'),
+            QoOrmMapperLine(orm_field_name='chain_id',
+                            qo_field_name='chain_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='current_chain_link_id',
+                            qo_field_name='current_chain_link_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='is_deleted',
+                            qo_field_name='is_deleted'),
+        ]
 
-    def __oo_to_order_params(self, order_params: IdeaOO) -> list:
-        order_params_for_orm = []
-        if order_params.created_at is not Empty():
-            order_params_for_orm.append('created_at')
-        return order_params_for_orm
+    @property
+    def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        return [
+            OoOrmMapperLine(orm_field_name='created_at',
+                            oo_field_name='created_at')
+        ]
 
-    def __orm_to_dto(self, idea: Idea) -> IdeaDtoFromOrm:
-        return IdeaDtoFromOrm(
+    def __orm_to_dto(self, idea: Idea) -> IdeaDalDto:
+        return IdeaDalDto(
             idea_id=IdeaID(idea.id),
             author_id=UserID(idea.author_id),
             name=idea.name,
@@ -56,32 +55,38 @@ class ChainRepository(DjangoRepository):
 
     model = Chain
 
-    def __qo_to_filter_params(self, filter_params: ChainQO) -> dict:
-        filter_params_for_orm = {}
-        if filter_params.chain_id is not Empty():
-            filter_params_for_orm['id'] = filter_params.chain_id
-        if filter_params.author_id is not Empty():
-            filter_params_for_orm['author_id'] = filter_params.author_id
-        if filter_params.reject_chain_link_id is not Empty():
-            filter_params_for_orm['author_id'] = filter_params.author_id
-        if filter_params.accept_chain_link_id is not Empty():
-            filter_params_for_orm['accept_chain_link_id'] = filter_params.accept_chain_link_id
-        if filter_params.is_deleted is not Empty():
-            filter_params_for_orm['is_deleted'] = filter_params.is_deleted
+    @property
+    def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        return [
+            QoOrmMapperLine(orm_field_name='id',
+                            qo_field_name='chain_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='author_id',
+                            qo_field_name='author_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='accept_chain_link_id',
+                            qo_field_name='accept_chain_link_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='reject_chain_link_id',
+                            qo_field_name='reject_chain_link_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='is_deleted',
+                            qo_field_name='is_deleted'),
+        ]
 
-    def __oo_to_order_params(self, order_params: ChainOO) -> list:
-        order_params_for_orm = []
-        if order_params.created_at is not Empty():
-            order_params_for_orm.append('created_at')
-        return order_params_for_orm
+    @property
+    def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        return [
+            OoOrmMapperLine(orm_field_name='created_at',
+                            oo_field_name='created_at')
+        ]
 
-    def __orm_to_dto(self, chain: Chain) -> ChainDtoFromOrm:
-        return ChainDtoFromOrm(
+    def __orm_to_dto(self, chain: Chain) -> ChainDalDto:
+        return ChainDalDto(
             chain_id=ChainID(chain.id),
-            actor_id=ActorID(chain.actor_id),
             author_id=UserID(chain.author_id),
-            reject_chain_link=ChainLinkID(chain.reject_chain_link_id),
-            accept_chain_link=ChainLinkID(chain.accept_chain_link_id),
+            reject_chain_link_id=ChainLinkID(chain.reject_chain_link_id),
+            accept_chain_link_id=ChainLinkID(chain.accept_chain_link_id),
             is_deleted=chain.is_deleted,
             created_at=chain.created_at,
             updated_at=chain.updated_at
@@ -90,40 +95,73 @@ class ChainRepository(DjangoRepository):
 
 class ChainLinkDjangoRepository(DjangoRepository):
 
-    @abc.abstractmethod
-    def __orm_to_dto(self, orm_model: ChainLink) -> Union[IDTO, IEntity]:
-        pass
+    model = ChainLink
 
-    @abc.abstractmethod
-    def __qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
-        pass
+    @property
+    def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        return [
+            QoOrmMapperLine(orm_field_name='id',
+                            qo_field_name='chain_link_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='chain_id',
+                            qo_field_name='chain_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='is_technical',
+                            qo_field_name='is_technical'),
+            QoOrmMapperLine(orm_field_name='actor_id',
+                            qo_field_name='actor_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='is_deleted',
+                            qo_field_name='is_deleted'),
+        ]
 
-    @abc.abstractmethod
-    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
-        pass
+    @property
+    def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        return [
+            OoOrmMapperLine(orm_field_name='created_at',
+                            oo_field_name='created_at'),
+            OoOrmMapperLine(orm_field_name='order',
+                            oo_field_name='order'),
+        ]
+
+    def __orm_to_dto(self, orm_model: ChainLink) -> ChainLinkDalDto:
+        return ChainLinkDalDto(
+            chain_link_id=ChainLinkID(orm_model.id),
+            actor_id=ActorID(orm_model.actor_id),
+            name=orm_model.name,
+            is_technical=orm_model.is_technical,
+            order=orm_model.order,
+            chain_id=ChainID(orm_model.chain_id),
+            number_of_related_ideas=orm_model.idea_set.count(),
+            is_deleted=orm_model.is_deleted
+        )
+
 
 class ActorRepository(DjangoRepository):
 
     model = Actor
 
-    def __orm_to_dto(self, orm_model: Actor) -> ActorDtoFromOrm:
-        return ActorDtoFromOrm(
-            actor_id=orm_model.id,
+    def __orm_to_dto(self, orm_model: Actor) -> ActorDalDto:
+        return ActorDalDto(
+            actor_id=ActorID(orm_model.id),
             name=orm_model.name,
             manager_ids=orm_model.managers.values_list('id', flat=True),
             groups_ids=orm_model.groups.values_list('id', flat=True)
         )
 
-    def __qo_to_filter_params(self, filter_params: Optional[ActorQO]) -> dict:
-        filter_params_for_orm = {}
-        if filter_params.name is not Empty():
-            filter_params_for_orm['name'] = filter_params.name
-        if filter_params.actor_id is not Empty():
-            filter_params_for_orm['id'] = filter_params.actor_id
-        return filter_params_for_orm
+    @property
+    def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        return [
+            QoOrmMapperLine(orm_field_name='id',
+                            qo_field_name='actor_id',
+                            modifier=int),
+            QoOrmMapperLine(orm_field_name='name',
+                            qo_field_name='name'),
+        ]
 
-    def __oo_to_order_params(self, order_params: Optional[ActorOO]) -> list:
-        order_params_for_orm = []
-        if order_params.created_at is not Empty():
-            order_params_for_orm.append('created_at')
-        return order_params_for_orm
+    @property
+    def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        return [
+            OoOrmMapperLine(orm_field_name='created_at',
+                            oo_field_name='created_at')
+        ]

@@ -1,6 +1,6 @@
 from typing import Type
 
-from cases.idea_exchange.dto import IdeaUserDTO
+from cases.idea_exchange.dto import IdeaUoDto
 from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO
 from dll.idea_exchange.uow import IdeaUOW
 from domain.idea_exchange.main import Idea
@@ -14,7 +14,7 @@ class IdeaCase:
     def __init__(self, uow_cls: Type[IdeaUOW]):
         self.uow = uow_cls()
 
-    def my_ideas(self, author_id, offset: int, limit: int) -> list[IdeaUserDTO]:
+    def my_ideas(self, author_id, offset: int, limit: int) -> list[IdeaUoDto]:
         with self.uow:
             idea_qo = IdeaQO()
             ideas = self.uow.fetch_ideas(idea_qo)

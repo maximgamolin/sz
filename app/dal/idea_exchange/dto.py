@@ -3,10 +3,11 @@ from datetime import datetime
 
 from domain.auth.core import UserID, GroupID
 from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
+from framework.domain.abs import IDTO
 
 
 @dataclass
-class IdeaDtoFromOrm:
+class IdeaDalDto(IDTO):
     idea_id: IdeaID
     author_id: UserID
     name: str
@@ -19,19 +20,18 @@ class IdeaDtoFromOrm:
 
 
 @dataclass
-class ChainDtoFromOrm:
+class ChainDalDto(IDTO):
     chain_id: ChainID
-    actor_id: ActorID
     author_id: UserID
-    reject_chain_link: ChainLinkID
-    accept_chain_link: ChainLinkID
+    reject_chain_link_id: ChainLinkID
+    accept_chain_link_id: ChainLinkID
     is_deleted: bool
     created_at: datetime
     updated_at: datetime
 
 
 @dataclass
-class ActorDtoFromOrm:
+class ActorDalDto(IDTO):
     actor_id: ActorID
     name: str
     groups_ids: list[GroupID]
@@ -39,5 +39,12 @@ class ActorDtoFromOrm:
 
 
 @dataclass
-class ChainLinkDalDto:
-
+class ChainLinkDalDto(IDTO):
+    chain_link_id: ChainLinkID
+    actor_id: ActorID
+    name: str
+    is_technical: bool
+    order: int
+    chain_id: ChainID
+    number_of_related_ideas: int
+    is_deleted: bool

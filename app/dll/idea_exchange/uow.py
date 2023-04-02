@@ -1,17 +1,19 @@
-from typing import Optional
+from typing import Optional, Iterable
 
-from cases.idea_exchange.dto import ChainLinkUserInputDTO, ActorUserInputDTO, IdeaUserDTO
+from cases.idea_exchange.dto import ChainLinkUiDto, ActorUiDto, IdeaUoDto, IdeaChanLinkUoDto
 from dal.auth.dto import SiteGroupDalDto
 from dal.auth.qo import UserQO, SiteGroupQO
 from dal.auth.repo import UserRepository, SiteGroupRepository
-from dal.idea_exchange.dto import ActorDtoFromOrm
+from dal.idea_exchange.dto import ActorDalDto, ChainLinkDalDto, IdeaDalDto, ChainDalDto
 from dal.idea_exchange.oo import IdeaOO, ChainLinkOO
 from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO, \
     ChainLinkQO
-from dal.idea_exchange.repo import IdeaRepository, ChainRepository, ActorRepository
+from dal.idea_exchange.repo import IdeaRepository, ChainRepository, ActorRepository, ChainLinkDjangoRepository
 from domain.auth.core import User, Group
 from domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor, Manager, ManagerGroup
+from domain.idea_exchange.types import ChainLinkID, ChainID
+from framework.data_access_layer.order_object.values import ASC
 from framework.data_access_layer.query_object.values import IN
 from framework.data_logic_layer.uow import BaseUnitOfWork
 
@@ -24,21 +26,20 @@ class IdeaUOW(BaseUnitOfWork):
             chain_repo_cls=ChainRepository,
             actor_repo_cls=ActorRepository,
             user_repo_cls=UserRepository,
-            group_repo_cls=SiteGroupRepository
+            group_repo_cls=SiteGroupRepository,
+            chain_link_repository_cls=ChainLinkDjangoRepository
     ):
         self.idea_repo = idea_repo_cls(None)
         self.chain_repo = chain_repo_cls(None)
         self.actor_repo = actor_repo_cls(None)
         self.user_repo = user_repo_cls(None)
         self.grop_repo = group_repo_cls(None)
+        self.chain_link_repository = chain_link_repository_cls(None)
 
     def add_idea_for_save(self, idea: Idea):
         pass
 
     def fetch_author(self, query_object: AuthorQO) -> IdeaAuthor:
-        pass
-
-    def fetch_chain(self, query_object: ChainQO) -> Chain:
         pass
 
     def fetch_idea(self, query_object: IdeaQO) -> Idea:
@@ -58,7 +59,7 @@ class IdeaUOW(BaseUnitOfWork):
         )
 
     def fetch_actor(self, actor_qo: ActorQO) -> Actor:
-        actor_dto: ActorDtoFromOrm = self.actor_repo.fetch_one(filter_params=actor_qo)
+        actor_dto: ActorDalDto = self.actor_repo.fetch_one(filter_params=actor_qo)
         group_qo = SiteGroupQO(group_id=IN(actor_dto.groups_ids))
         groups_dtos = self.grop_repo.fetch_many(filter_params=group_qo)
         manager_groups = [self.build_group(i) for i in groups_dtos]
@@ -72,22 +73,101 @@ class IdeaUOW(BaseUnitOfWork):
             groups=manager_groups
         )
 
-    def fetch_chain_link(self, chain_link_qo: ChainLinkQO, chain_link_oo: Optional[ChainLinkOO] = None):
-        chain_links_dtos
-        actor_qo = ActorQO(actor_id=chain_dto.actor_id)
+    def _build_chain_links(self, chain_link_dto: ChainLinkDalDto) -> ChainLink:
+        actor_qo = ActorQO(actor_id=chain_link_dto.actor_id)
         actor = self.fetch_actor(actor_qo)
+        return ChainLink(
+                chain_link_id=chain_link_dto.chain_link_id,
+                actor=actor,
+                name=chain_link_dto.name,
+                number_of_related_ideas=chain_link_dto.number_of_related_ideas,
+                is_technical=chain_link_dto.is_technical,
+                _meta_is_deleted=chain_link_dto.is_deleted
+            )
 
+    def fetch_chain_chain_links(self, chain_id: ChainID) -> list[ChainLink]:
+        chain_link_qo = ChainLinkQO(
+            is_technical=False,
+            chain_id=chain_id,
+            is_deleted=False
+        )
+        chain_link_oo = ChainLinkOO(
+            order=ASC()
+        )
+        chain_links_dtos: Iterable[ChainLinkDalDto] = self.chain_link_repository.fetch_many(
+            filter_params=chain_link_qo,
+            order_params=chain_link_oo
+        )
+        result = []
+        for chain_link_dto in chain_links_dtos:
+            result.append(self._build_chain_links(chain_link_dto))
+        return result
+
+    def fetch_one_chain_link(self, chain_link_id: ChainLinkID):
+        chain_link_qo = ChainLinkQO(
+            chain_link_id=chain_link_id,
+            is_deleted=False
+        )
+        chain_link_dto: ChainLinkDalDto = self.chain_link_repository.fetch_one(filter_params=chain_link_qo)
+        return self._build_chain_links(chain_link_dto)
+
+    def fetch_chain(self, chain_id: ChainID) -> Chain:
+        chain_qo = ChainQO(chain_id=chain_id)
+        chain_dto: ChainDalDto = self.chain_repo.fetch_one(filter_params=chain_qo)
+        chain_links = self.fetch_chain_chain_links(chain_dto.chain_id)
+        accept_chain_link = self.fetch_one_chain_link(chain_link_id=chain_dto.accept_chain_link_id)
+        reject_chain_link = self.fetch_one_chain_link(chain_link_id=chain_dto.reject_chain_link_id)
+        user_qo = UserQO(user_id=chain_dto.author_id)
+        user_author = self.user_repo.fetch_one(filter_params=user_qo)
+        return Chain(
+            chain_id=chain_dto.chain_id,
+            chain_links=chain_links,
+            author=ChainEditor.from_user(user_author),
+            reject_chain_link=reject_chain_link,
+            accept_chain_link=accept_chain_link,
+            _meta_is_deleted=chain_dto.is_deleted
+        )
+
+    def build_idea(self, idea_dal_dto: IdeaDalDto) -> Idea:
+        chain = self.fetch_chain(idea_dal_dto.chain_id)
+        user_qo = UserQO(user_id=idea_dal_dto.author_id)
+        user_author = self.user_repo.fetch_one(filter_params=user_qo)
+        current_chain_link = chain.chain_link_by_id(idea_dal_dto.current_chain_link_id)
+        return Idea(
+            idea_id=idea_dal_dto.idea_id,
+            author=IdeaAuthor.from_user(user_author),
+            name=idea_dal_dto.name,
+            body=idea_dal_dto.body,
+            chain=chain,
+            current_chain_link=current_chain_link,
+            _meta_is_deleted=idea_dal_dto.is_deleted
+        )
 
     def fetch_ideas(self, query_object: IdeaQO, order_object: Optional[IdeaOO] = None) -> list[Idea]:
-        ideas_dtos = self.idea_repo.fetch_many(filter_params=query_object, order_params=order_object)
-        for idea_dto in ideas_dtos:
-            chain_qo = ChainQO(chain_id=idea_dto.chain_id)
-            chain_dto = self.chain_repo.fetch_one(filter_params=chain_qo)
+        idea_dal_dtos: Iterable[IdeaDalDto] = self.idea_repo.fetch_many(filter_params=query_object, order_params=order_object)
+        result = []
+        for idea_dal_dto in idea_dal_dtos:
+            result.append(
+                self.build_idea(idea_dal_dto=idea_dal_dto)
+            )
+        return result
 
+    def convert_chain_link_to_uo(self, chain_link: ChainLink, idea: Idea) -> IdeaChanLinkUoDto:
+        return IdeaChanLinkUoDto(
+            chain_link_id=int(chain_link.chain_link_id),
+            name=chain_link.name,
+            is_current=idea.is_chain_link_current(chain_link)
+        )
 
-
-    def convert_idea_to_output(self, idea: Idea) -> IdeaUserDTO:
-        pass
+    def convert_idea_to_output(self, idea: Idea) -> IdeaUoDto:
+        return IdeaUoDto(
+            idea_id=idea.idea_id,
+            name=idea.name,
+            body=idea.body,
+            is_accepted=idea.is_accepted(),
+            is_rejected=idea.is_rejected(),
+            chain_links=[self.convert_chain_link_to_uo(i, idea) for i in idea.chain.chain_links]
+        )
 
 
 class ChainUOW(BaseUnitOfWork):
@@ -108,7 +188,7 @@ class ChainUOW(BaseUnitOfWork):
 
     def convert_actor_dto_to_entity(
             self,
-            actor_user_input: ActorUserInputDTO
+            actor_user_input: ActorUiDto
     ) -> Actor:
         # -! DoesNotExists
         users = []
@@ -131,7 +211,7 @@ class ChainUOW(BaseUnitOfWork):
 
     def convert_chain_link_dto_to_entity(
             self,
-            chain_link_user_input: ChainLinkUserInputDTO
+            chain_link_user_input: ChainLinkUiDto
     ) -> ChainLink:
         return ChainLink(
             chain_link_id=chain_link_user_input.chain_link_id,
