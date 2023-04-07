@@ -56,12 +56,13 @@ class InjectorStorage:
 class Wrapper:
 
     def __init__(self, name: str):
-        storage = InjectorStorage()
-        self._line = storage.fetch_resource(name)
+        self.name = name
 
     def __call__(self, *args, **kwargs):
-        module = import_module(self._line.module())
-        klass = getattr(module, self._line.class_name())
+        storage = InjectorStorage()
+        line = storage.fetch_resource(self.name)
+        module = import_module(line.module())
+        klass = getattr(module, line.class_name())
         return klass(*args, **kwargs)
 
 
@@ -69,7 +70,7 @@ def inject(name: str):
     return Wrapper(name)
 
 
-storage = InjectorStorage()
+s = InjectorStorage()
 
 
 
