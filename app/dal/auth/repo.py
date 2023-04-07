@@ -1,8 +1,8 @@
 from accounts.models import CustomUser, SiteGroup
-from dal.auth.dto import SiteGroupDalDto
-from domain.auth.core import User
-from domain.auth.core import UserID, GroupID
-from framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
+from app.dal.auth.dto import SiteGroupDalDto
+from app.domain.auth.core import User
+from app.domain.auth.core import UserID, GroupID
+from app.framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
 
 
 class UserRepository(DjangoRepository):

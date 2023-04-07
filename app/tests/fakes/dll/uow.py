@@ -1,4 +1,4 @@
-from framework.data_logic_layer.uow import BaseUnitOfWork
+from app.framework.data_logic_layer.uow import BaseUnitOfWork
 
 class FakeUOW(BaseUnitOfWork):
     pass

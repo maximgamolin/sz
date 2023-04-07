@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from domain.auth.core import UserID, GroupID
+from app.domain.auth.core import UserID, GroupID
 
 
 @dataclass

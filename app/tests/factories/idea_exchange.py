@@ -1,10 +1,10 @@
 from random import randrange
 
-from domain.auth.core import UserID, GroupID
-from domain.idea_exchange.main import Chain, ChainLink, Actor, ChainEditor, \
+from app.domain.auth.core import UserID, GroupID
+from app.domain.idea_exchange.main import Chain, ChainLink, Actor, ChainEditor, \
     IdeaAuthor, Idea, Manager, ManagerGroup
-from domain.idea_exchange.types import ChainLinkID, ActorID, ChainID, IdeaID
-from framework.test.utils import generate_random_string, Empty
+from app.domain.idea_exchange.types import ChainLinkID, ActorID, ChainID, IdeaID
+from app.framework.test.utils import generate_random_string, Empty
 
 
 class ActorFactory:

@@ -1,15 +1,15 @@
 from random import randrange
 from unittest import TestCase
 
-from cases.idea_exchange.idea import IdeaCase
-from domain.idea_exchange.main import Idea, IdeaAuthor
-from domain.idea_exchange.types import IdeaID
-from exceptions.auth import PermissionDenied
-from exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
-from framework.test.utils import generate_random_string
-from tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
+from app.cases.idea_exchange.idea import IdeaCase
+from app.domain.idea_exchange.main import Idea, IdeaAuthor
+from app.domain.idea_exchange.types import IdeaID
+from app.exceptions.auth import PermissionDenied
+from app.exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
+from app.framework.test.utils import generate_random_string
+from app.tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
     ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory, ManagerFactory, ManagerGroupFactory
-from tests.fakes.dll.uow import FakeUOW
+from app.tests.fakes.dll.uow import FakeUOW
 
 
 class FakeIdeaUOW(FakeUOW):

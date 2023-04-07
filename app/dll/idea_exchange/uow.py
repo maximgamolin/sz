@@ -1,33 +1,33 @@
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Type
 
-from cases.idea_exchange.dto import ChainLinkUiDto, ActorUiDto, IdeaUoDto, IdeaChanLinkUoDto
-from dal.auth.dto import SiteGroupDalDto
-from dal.auth.qo import UserQO, SiteGroupQO
-from dal.auth.repo import UserRepository, SiteGroupRepository
-from dal.idea_exchange.dto import ActorDalDto, ChainLinkDalDto, IdeaDalDto, ChainDalDto
-from dal.idea_exchange.oo import IdeaOO, ChainLinkOO
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO, \
+from app.cases.idea_exchange.dto import ChainLinkUiDto, ActorUiDto, IdeaUoDto, IdeaChanLinkUoDto
+from app.dal.auth.dto import SiteGroupDalDto
+from app.dal.auth.qo import UserQO, SiteGroupQO
+from app.dal.idea_exchange.dto import ActorDalDto, ChainLinkDalDto, IdeaDalDto, ChainDalDto
+from app.dal.idea_exchange.oo import IdeaOO, ChainLinkOO
+from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO, \
     ChainLinkQO
-from dal.idea_exchange.repo import IdeaRepository, ChainRepository, ActorRepository, ChainLinkDjangoRepository
-from domain.auth.core import User, Group
-from domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
+from app.domain.auth.core import User, Group
+from app.domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor, Manager, ManagerGroup
-from domain.idea_exchange.types import ChainLinkID, ChainID
-from framework.data_access_layer.order_object.values import ASC
-from framework.data_access_layer.query_object.values import IN
-from framework.data_logic_layer.uow import BaseUnitOfWork
+from app.domain.idea_exchange.types import ChainLinkID, ChainID
+from app.framework.data_access_layer.order_object.values import ASC
+from app.framework.data_access_layer.query_object.values import IN
+from app.framework.data_access_layer.repository import ABSRepository
+from app.framework.data_logic_layer.uow import BaseUnitOfWork
+from app.framework.injector.main import inject
 
 
 class IdeaUOW(BaseUnitOfWork):
 
     def __init__(
             self,
-            idea_repo_cls=IdeaRepository,
-            chain_repo_cls=ChainRepository,
-            actor_repo_cls=ActorRepository,
-            user_repo_cls=UserRepository,
-            group_repo_cls=SiteGroupRepository,
-            chain_link_repository_cls=ChainLinkDjangoRepository
+            idea_repo_cls: Type[ABSRepository] = inject('IdeaRepository'),
+            chain_repo_cls: Type[ABSRepository] = inject('ChainRepository'),
+            actor_repo_cls: Type[ABSRepository] = inject('ActorRepository'),
+            user_repo_cls: Type[ABSRepository] = inject('UserRepository'),
+            group_repo_cls: Type[ABSRepository] = inject('SiteGroupRepository'),
+            chain_link_repository_cls: Type[ABSRepository] = inject('ChainLinkRepository')
     ):
         self.idea_repo = idea_repo_cls(None)
         self.chain_repo = chain_repo_cls(None)

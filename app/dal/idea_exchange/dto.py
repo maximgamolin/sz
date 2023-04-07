@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from domain.auth.core import UserID, GroupID
-from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
-from framework.domain.abs import IDTO
+from app.domain.auth.core import UserID, GroupID
+from app.domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
+from app.framework.domain.abs import IDTO
 
 
 @dataclass

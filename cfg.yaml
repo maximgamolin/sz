@@ -1,0 +1,14 @@
+injections:
+  repo:
+    - name: IdeaRepository
+      path: app.dal.idea_exchange.repo.IdeaRepository
+    - name: ChainRepository
+      path: app.dal.idea_exchange.repo.ChainRepository
+    - name: ActorRepository
+      path: app.dal.idea_exchange.repo.ActorRepository
+    - name: UserRepository
+      path: app.dal.auth.repo.UserRepository
+    - name: SiteGroupRepository
+      path: app.dal.auth.repo.SiteGroupRepository
+    - name: ChainLinkRepository
+      path: app.dal.idea_exchange.repo.ChainLinkDjangoRepository

@@ -1,12 +1,12 @@
 from typing import Type
 
-from cases.idea_exchange.dto import IdeaUoDto
-from dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO
-from dll.idea_exchange.uow import IdeaUOW
-from domain.idea_exchange.main import Idea
-from domain.idea_exchange.types import IdeaID
-from exceptions.auth import PermissionDenied
-from exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
+from app.cases.idea_exchange.dto import IdeaUoDto
+from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO
+from app.dll.idea_exchange.uow import IdeaUOW
+from app.domain.idea_exchange.main import Idea
+from app.domain.idea_exchange.types import IdeaID
+from app.exceptions.auth import PermissionDenied
+from app.exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
 
 
 class IdeaCase:

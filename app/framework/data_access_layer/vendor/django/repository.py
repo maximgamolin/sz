@@ -1,14 +1,14 @@
 from abc import ABC
 from typing import Generic, Optional, Iterable, Callable, Any
 
-from exceptions.orm import NotFoundException
-from framework.data_access_layer.basic import EntityTypeVar
-from framework.data_access_layer.order_object.base import ABSOrderObject
-from framework.data_access_layer.order_object.values import ASC, DESC
-from framework.data_access_layer.query_object.base import ABSQueryObject
-from framework.data_access_layer.query_object.values import IN, GTE
-from framework.data_access_layer.repository import ABSRepository, ORMModel, NoQueryBuilderRepositoryMixin
-from framework.data_access_layer.values import Empty
+from app.exceptions.orm import NotFoundException
+from app.framework.data_access_layer.basic import EntityTypeVar
+from app.framework.data_access_layer.order_object.base import ABSOrderObject
+from app.framework.data_access_layer.order_object.values import ASC, DESC
+from app.framework.data_access_layer.query_object.base import ABSQueryObject
+from app.framework.data_access_layer.query_object.values import IN, GTE
+from app.framework.data_access_layer.repository import ABSRepository, ORMModel, NoQueryBuilderRepositoryMixin
+from app.framework.data_access_layer.values import Empty
 
 
 class QoOrmMapperLine:

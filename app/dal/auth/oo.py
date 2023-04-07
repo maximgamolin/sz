@@ -1,4 +1,4 @@
-from framework.data_access_layer.query_object import ABSOrderObject
+from app.framework.data_access_layer.order_object.base import ABSOrderObject
 
 
 class UserOO(ABSOrderObject):

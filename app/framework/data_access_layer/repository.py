@@ -1,12 +1,12 @@
 import abc
 from typing import Generic, Iterable, Optional, TypeVar, Union
 
-from exceptions.orm import NotFoundException
-from framework.data_access_layer.basic import EntityTypeVar
-from framework.data_access_layer.order_object.base import ABSOrderObject
-from framework.data_access_layer.query_object.base import ABSQueryObject
-from framework.domain.abs import IDTO, IEntity
-from framework.mapper import ABSMapper
+from app.exceptions.orm import NotFoundException
+from app.framework.data_access_layer.basic import EntityTypeVar
+from app.framework.data_access_layer.order_object.base import ABSOrderObject
+from app.framework.data_access_layer.query_object.base import ABSQueryObject
+from app.framework.domain.abs import IDTO, IEntity
+from app.framework.mapper import ABSMapper
 
 ModelEntityMapperClass = TypeVar('ModelEntityMapperClass', bound=ABSMapper)
 ORMModel = TypeVar('ORMModel')

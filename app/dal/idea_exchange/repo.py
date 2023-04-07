@@ -1,7 +1,7 @@
-from dal.idea_exchange.dto import IdeaDalDto, ChainDalDto, ActorDalDto, ChainLinkDalDto
-from domain.auth.core import UserID
-from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
-from framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
+from app.dal.idea_exchange.dto import IdeaDalDto, ChainDalDto, ActorDalDto, ChainLinkDalDto
+from app.domain.auth.core import UserID
+from app.domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
+from app.framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
 from idea.models import Idea, Chain, Actor, ChainLink
 
 

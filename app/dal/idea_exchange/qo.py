@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, Union
 
-from domain.auth.core import UserID
-from domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
-from framework.data_access_layer.query_object.base import ABSQueryObject
-from framework.data_access_layer.query_object.values import QueryParamComparison
-from framework.data_access_layer.values import Empty
+from app.domain.auth.core import UserID
+from app.domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
+from app.framework.data_access_layer.query_object.base import ABSQueryObject
+from app.framework.data_access_layer.query_object.values import QueryParamComparison
+from app.framework.data_access_layer.values import Empty
 
 
 @dataclass

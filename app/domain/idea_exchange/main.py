@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, Iterable
 
-from domain.auth.core import User, Group
-from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
-from exceptions.idea_exchange import ChainLinkCantBeDeleted
-from exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
-from framework.data_logic_layer.meta import BaseMeta, MetaManipulation
+from app.domain.auth.core import User, Group
+from app.domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
+from app.exceptions.idea_exchange import ChainLinkCantBeDeleted
+from app.exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
+from app.framework.data_logic_layer.meta import BaseMeta, MetaManipulation
 
 
 @dataclass
@@ -248,19 +248,9 @@ class Chain(MetaManipulation):
         old_chain_links = list(self.chain_links)
         used_chain_links: set[ChainLinkID] = set()
         for chain_link in chain_links:
-            if chain_link.is_new():
-                chain_link.set_for_change()
-            else:
-                old_chain_link = next(
-                    (i for i in old_chain_links if chain_link.chain_link_id == i.chain_link_id)
-                )
-                if old_chain_link is None:
-                    # TODO добавить варнинг
-                    # Вообще странно, это должно отлететь на валидации
-                    continue
-                if chain_link != old_chain_link:
-                    chain_link.set_for_change()
-                used_chain_links.add(old_chain_link.chain_link_id)
+            chain_link.set_for_change()
+            if chain_link.chain_link_id:
+                used_chain_links.add(chain_link.chain_link_id)
         self.chain_links = chain_links
         for old_chain_link in old_chain_links:
             if old_chain_link.chain_link_id not in used_chain_links:

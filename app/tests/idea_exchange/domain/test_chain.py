@@ -1,15 +1,9 @@
 from unittest import TestCase
-from cases.idea_exchange.idea import IdeaCase
-from domain.idea_exchange.main import Idea, Chain, IdeaAuthor, \
-    ChainLink, Actor, ChainEditor
-from domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID
-from tests.fakes.dll.uow import FakeUOW
-from random import randrange
-from exceptions.auth import PermissionDenied
-from framework.test.utils import generate_random_string
-from exceptions.idea_exchange import IdeaIsNotEdiatable, ChainLinkCantBeDeleted
-from tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
-    ChainLinkFactory, ChainFactory, IdeaAuthorFactory, IdeaFactory
+
+from app.exceptions.idea_exchange import ChainLinkCantBeDeleted
+from app.framework.test.utils import generate_random_string
+from app.tests.factories.idea_exchange import ActorFactory, ChainEditorFactory, \
+    ChainLinkFactory, ChainFactory
 
 
 class TestChain(TestCase):
@@ -85,7 +79,7 @@ class TestChain(TestCase):
         self.assertIn(self.chain_link2, self.chain.chain_links)
         for i in self.chain.chain_links:
             self.assertFalse(i._meta.is_deleted)
-            self.assertFalse(i._meta.is_changed)
+            self.assertTrue(i._meta.is_changed)
 
     def test_changed_chain_links(self):
         changed_chain_link1 = ChainLinkFactory.create_chain_link(
@@ -102,4 +96,4 @@ class TestChain(TestCase):
         self.assertIn(changed_chain_link1, self.chain.chain_links)
         self.assertIn(self.chain_link2, self.chain.chain_links)
         self.assertTrue(self.chain.chain_links[0]._meta.is_changed)
-        self.assertFalse(self.chain.chain_links[1]._meta.is_changed)
+        self.assertTrue(self.chain.chain_links[1]._meta.is_changed)

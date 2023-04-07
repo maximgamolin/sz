@@ -35,7 +35,7 @@ class Chain(BaseModel):
 
 
 class Idea(BaseModel):
-    name = models.CharField(verbose_name='Имя')
+    name = models.CharField(verbose_name='Имя', max_length=255)
     author = models.ForeignKey('accounts.CustomUser', verbose_name='Автор', on_delete=models.CASCADE)
     body = models.TextField(verbose_name='Текст')
     chain = models.ForeignKey('idea.Chain', verbose_name='Цепочка', on_delete=models.CASCADE)

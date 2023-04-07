@@ -1,9 +1,9 @@
 from typing import Type
 
-from cases.idea_exchange.dto import ChainLinkUiDto
-from dal.idea_exchange.qo import ChainEditorQO
-from dll.idea_exchange.uow import ChainUOW
-from domain.idea_exchange.main import Chain
+from app.cases.idea_exchange.dto import ChainLinkUiDto
+from app.dal.idea_exchange.qo import ChainEditorQO
+from app.dll.idea_exchange.uow import ChainUOW
+from app.domain.idea_exchange.main import Chain
 
 
 class ChainCase:
