@@ -1,4 +1,5 @@
 import os
+from importlib import import_module
 from warnings import warn
 
 import yaml
@@ -16,6 +17,12 @@ class InjectorLine:
 
     def __init__(self, path):
         self.path = path
+
+    def module(self) -> str:
+        return '.'.join(self.path.split('.')[:-1])
+
+    def class_name(self) -> str:
+        return self.path.split('.')[-1]
 
 
 class InjectorStorage:
@@ -43,7 +50,7 @@ class InjectorStorage:
     def fetch_resource(self, name: str):
         if name not in self.map:
             raise ClassDoesNotExists(f'Class for {name} is not registered')
-        return self.map[name].path
+        return self.map[name]
 
 
 class Wrapper:
@@ -52,7 +59,8 @@ class Wrapper:
         self._line = line
 
     def __call__(self, *args, **kwargs):
-        klass = __import__(self._line.path)
+        module = import_module(self._line.module())
+        klass = getattr(module, self._line.class_name())
         return klass(*args, **kwargs)
 
 
