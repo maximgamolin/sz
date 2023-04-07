@@ -41,15 +41,19 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
         raise NotImplementedError()
 
     def _extract_filter_val_for_orm(self, mapper_line: QoOrmMapperLine, val) -> dict:
+        value = None
         if isinstance(val, IN):
             orm_query_param_name = f'{mapper_line.orm_field_name}__in'
+            value = val.value
         elif isinstance(val, GTE):
             orm_query_param_name = f'{mapper_line.orm_field_name}__in'
+            value = val.value
         else:
             orm_query_param_name = mapper_line.orm_field_name
-        return {orm_query_param_name: mapper_line.modifier(val.value)}
+            value = val
+        return {orm_query_param_name: mapper_line.modifier(value)}
 
-    def __qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
+    def _qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
         if not filter_params:
             return {}
         filter_params_for_orm = {}
@@ -68,15 +72,16 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
         if isinstance(val, DESC):
             return f'-{mapper_line.orm_field_name}'
 
-    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
+    def _oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
         if not order_params:
             return []
         order_params_for_orm = []
         for mapper_line in self._oo_orm_fields_mapping:
-            field_val = getattr(order_params, mapper_line.oo_field_value)
+            field_val = getattr(order_params, mapper_line.oo_field_name)
             if field_val is Empty():
                 continue
-            order_params_for_orm.append(self._extract_order_values_to_orm())
+            order_params_for_orm.append(self._extract_order_values_to_orm(mapper_line, field_val))
+        return order_params_for_orm
 
 
 class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
@@ -96,11 +101,11 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
             raise_if_empty: bool = True
     ) -> Optional[EntityTypeVar] | NotFoundException:
         if filter_params:
-            filter_params_for_orm = self.__qo_to_filter_params(filter_params)
+            filter_params_for_orm = self._qo_to_filter_params(filter_params)
         else:
             filter_params_for_orm = {}
         if order_params:
-            order_params_for_orm = self.__oo_to_order_params(order_params)
+            order_params_for_orm = self._oo_to_order_params(order_params)
         else:
             order_params_for_orm = []
         orm_chan = self.model.objects.filter(
@@ -110,7 +115,7 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
         ).first()
         if not orm_chan:
             return
-        return self.__orm_to_dto(orm_chan)
+        return self._orm_to_dto(orm_chan)
 
     def fetch_many(
             self,
@@ -120,21 +125,18 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
             limit: Optional[int] = None,
             chunk_size: int = 1000
     ) -> Iterable[EntityTypeVar]:
+        orm_ideas = self.model.objects
         if filter_params:
-            filter_params_for_orm = self.__qo_to_filter_params(filter_params)
-        else:
-            filter_params_for_orm = {}
+            filter_params_for_orm = self._qo_to_filter_params(filter_params)
+            orm_ideas = orm_ideas.filter(**filter_params_for_orm)
+
         if order_params:
-            order_params_for_orm = self.__oo_to_order_params(order_params)
-        else:
-            order_params_for_orm = []
-        orm_ideas = self.model.objects.filter(
-            **filter_params_for_orm
-        ).order_by(
-            *order_params_for_orm
-        ).iterator(chunk_size=chunk_size)
+            order_params_for_orm = self._oo_to_order_params(order_params)
+            orm_ideas = orm_ideas.order_by(*order_params_for_orm)
+
+        orm_ideas.iterator(chunk_size=chunk_size)
         for orm_idea in orm_ideas:
-            yield self.__orm_to_dto(orm_idea)
+            yield self._orm_to_dto(orm_idea)
 
     def add(self, domain_model: Generic[EntityTypeVar]) -> None:
         pass

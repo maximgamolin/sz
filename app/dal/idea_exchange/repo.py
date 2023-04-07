@@ -37,7 +37,7 @@ class IdeaRepository(DjangoRepository):
                             oo_field_name='created_at')
         ]
 
-    def __orm_to_dto(self, idea: Idea) -> IdeaDalDto:
+    def _orm_to_dto(self, idea: Idea) -> IdeaDalDto:
         return IdeaDalDto(
             idea_id=IdeaID(idea.id),
             author_id=UserID(idea.author_id),
@@ -81,7 +81,7 @@ class ChainRepository(DjangoRepository):
                             oo_field_name='created_at')
         ]
 
-    def __orm_to_dto(self, chain: Chain) -> ChainDalDto:
+    def _orm_to_dto(self, chain: Chain) -> ChainDalDto:
         return ChainDalDto(
             chain_id=ChainID(chain.id),
             author_id=UserID(chain.author_id),
@@ -124,7 +124,7 @@ class ChainLinkDjangoRepository(DjangoRepository):
                             oo_field_name='order'),
         ]
 
-    def __orm_to_dto(self, orm_model: ChainLink) -> ChainLinkDalDto:
+    def _orm_to_dto(self, orm_model: ChainLink) -> ChainLinkDalDto:
         return ChainLinkDalDto(
             chain_link_id=ChainLinkID(orm_model.id),
             actor_id=ActorID(orm_model.actor_id),
@@ -141,12 +141,12 @@ class ActorRepository(DjangoRepository):
 
     model = Actor
 
-    def __orm_to_dto(self, orm_model: Actor) -> ActorDalDto:
+    def _orm_to_dto(self, orm_model: Actor) -> ActorDalDto:
         return ActorDalDto(
             actor_id=ActorID(orm_model.id),
             name=orm_model.name,
-            manager_ids=orm_model.managers.values_list('id', flat=True),
-            groups_ids=orm_model.groups.values_list('id', flat=True)
+            manager_ids=list(orm_model.managers.values_list('id', flat=True)),
+            groups_ids=list(orm_model.groups.values_list('id', flat=True))
         )
 
     @property

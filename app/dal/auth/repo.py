@@ -9,7 +9,7 @@ class UserRepository(DjangoRepository):
 
     model = CustomUser
 
-    def __orm_to_dto(self, orm_model: CustomUser) -> User:
+    def _orm_to_dto(self, orm_model: CustomUser) -> User:
         return User(
             user_id=UserID(orm_model.id)
         )
@@ -31,11 +31,11 @@ class SiteGroupRepository(DjangoRepository):
 
     model = SiteGroup
 
-    def __orm_to_dto(self, orm_model: SiteGroup) -> SiteGroupDalDto:
+    def _orm_to_dto(self, orm_model: SiteGroup) -> SiteGroupDalDto:
         return SiteGroupDalDto(
             group_id=GroupID(orm_model.id),
             name=orm_model.name,
-            users_ids_in_group=orm_model.user_set.values_list('id', flat=True)
+            users_ids_in_group=list(orm_model.user_set.values_list('id', flat=True))
         )
 
     @property

@@ -16,15 +16,15 @@ ISessionTypeVar = TypeVar('ISessionTypeVar')
 class NoQueryBuilderRepositoryMixin:
 
     @abc.abstractmethod
-    def __orm_to_dto(self, orm_model: ORMModel) -> Union[IDTO, IEntity]:
+    def _orm_to_dto(self, orm_model: ORMModel) -> Union[IDTO, IEntity]:
         pass
 
     @abc.abstractmethod
-    def __qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
+    def _qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
         pass
 
     @abc.abstractmethod
-    def __oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
+    def _oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
         pass
 
 

@@ -8,6 +8,7 @@ from app.dal.idea_exchange.oo import IdeaOO, ChainLinkOO
 from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO, \
     ChainLinkQO
 from app.domain.auth.core import User, Group
+from app.domain.auth.core import UserID
 from app.domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor, Manager, ManagerGroup
 from app.domain.idea_exchange.types import ChainLinkID, ChainID
@@ -151,6 +152,16 @@ class IdeaUOW(BaseUnitOfWork):
                 self.build_idea(idea_dal_dto=idea_dal_dto)
             )
         return result
+
+    def all_user_ideas(self, user_id: int):
+        idea_qo = IdeaQO(
+            author_id=UserID(user_id)
+        )
+        idea_oo = IdeaOO(
+            created_at=ASC()
+        )
+        ideas = self.fetch_ideas(query_object=idea_qo, order_object=idea_oo)
+        return [self.convert_idea_to_output(i) for i in ideas]
 
     def convert_chain_link_to_uo(self, chain_link: ChainLink, idea: Idea) -> IdeaChanLinkUoDto:
         return IdeaChanLinkUoDto(

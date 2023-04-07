@@ -4,17 +4,17 @@ from abs.models import BaseModel
 
 
 class Actor(BaseModel):
-    managers = models.ManyToManyField('accounts.CustomUser', verbose_name='менеджеры')
-    groups = models.ManyToManyField('accounts.SiteGroup', verbose_name='Группы менеджеров')
+    managers = models.ManyToManyField('accounts.CustomUser', verbose_name='менеджеры', blank=True)
+    groups = models.ManyToManyField('accounts.SiteGroup', verbose_name='Группы менеджеров', blank=True)
     name = models.CharField(verbose_name='Название', max_length=120)
 
 
 class ChainLink(BaseModel):
-    actor = models.ForeignKey('idea.Actor', verbose_name='Актор', on_delete=models.CASCADE)
+    actor = models.ForeignKey('idea.Actor', verbose_name='Актор', on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(verbose_name='Название', max_length=120)
     is_technical = models.BooleanField(verbose_name='Является ли техническим звеном')
-    order = models.PositiveSmallIntegerField(verbose_name='Номер в цепочке')
-    chain = models.ForeignKey('idea.Chain', verbose_name='Цепочка', on_delete=models.CASCADE)
+    order = models.PositiveSmallIntegerField(verbose_name='Номер в цепочке', null=True, blank=True)
+    chain = models.ForeignKey('idea.Chain', verbose_name='Цепочка', on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Chain(BaseModel):
