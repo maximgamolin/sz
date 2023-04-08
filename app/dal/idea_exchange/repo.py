@@ -44,7 +44,7 @@ class IdeaRepository(DjangoRepository):
             name=idea.name,
             body=idea.body,
             chain_id=ChainID(idea.chain_id),
-            current_chain_link_id=ChainLinkID(idea.current_chain_link),
+            current_chain_link_id=ChainLinkID(idea.current_chain_link_id),
             is_deleted=idea.is_deleted,
             created_at=idea.created_at,
             updated_at=idea.updated_at

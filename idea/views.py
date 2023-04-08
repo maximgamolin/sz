@@ -13,6 +13,8 @@ class IndexView(TemplateView):
 
 class AllMyIdeas(LoginRequiredMixin, TemplateView):
 
+    template_name = 'my_ideas.html'
+
     def get_context_data(self, **kwargs):
         ctx = super(AllMyIdeas, self).get_context_data(**kwargs)
         uow = IdeaUOW()

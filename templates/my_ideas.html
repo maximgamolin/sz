@@ -1,9 +1,29 @@
 {% extends "frame.html" %}
 {% load static %}
 {% block content %}
-  <main id="main" class="main">
-    <p class="text-center p-5">
-      Привет, выбери действие
-    </p>
-  </main>
-  {% endblock %}<!-- End #main -->
+    <main id="main" class="main">
+        <section class="section">
+            <div class="row align-items-top">
+                <div class="col-lg-12">
+
+                    {% for idea in ideas %}
+                        <div class="card">
+                            <div class="card-header">{{ idea.idea_id }} - {{ idea.name }}</div>
+                            <div class="card-body">
+
+                                {{ idea.body }}
+                            </div>
+                            <div class="card-footer">
+                                {% for chain_link in idea.chain_links %}
+                                    {% if chain_link.is_current %}
+                                        <h5 class="card-title">{{ chain_link.chain_link_id }} - {{ chain_link.name }}</h5>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div><!-- End Card with header and footer -->
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}<!-- End #main -->

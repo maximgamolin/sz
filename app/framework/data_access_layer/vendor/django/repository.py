@@ -44,14 +44,15 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
         value = None
         if isinstance(val, IN):
             orm_query_param_name = f'{mapper_line.orm_field_name}__in'
-            value = val.value
+            value = [mapper_line.modifier(i) for i in val.value]
         elif isinstance(val, GTE):
-            orm_query_param_name = f'{mapper_line.orm_field_name}__in'
-            value = val.value
+            orm_query_param_name = f'{mapper_line.orm_field_name}__gte'
+            value = mapper_line.modifier(val.value)
         else:
             orm_query_param_name = mapper_line.orm_field_name
-            value = val
-        return {orm_query_param_name: mapper_line.modifier(value)}
+            value = mapper_line.modifier(val)
+        return {orm_query_param_name: value}
+
 
     def _qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
         if not filter_params:

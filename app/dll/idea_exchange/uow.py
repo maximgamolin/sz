@@ -161,7 +161,7 @@ class IdeaUOW(BaseUnitOfWork):
             created_at=ASC()
         )
         ideas = self.fetch_ideas(query_object=idea_qo, order_object=idea_oo)
-        return [self.convert_idea_to_output(i) for i in ideas]
+        return [self.convert_idea_to_output(i).to_dict() for i in ideas]
 
     def convert_chain_link_to_uo(self, chain_link: ChainLink, idea: Idea) -> IdeaChanLinkUoDto:
         return IdeaChanLinkUoDto(

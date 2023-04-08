@@ -23,6 +23,13 @@ class IdeaChanLinkUoDto:
     name: str
     is_current: bool
 
+    def to_dict(self):
+        return {
+            'chain_link_id': self.chain_link_id,
+            'name': self.name,
+            'is_current': self.is_current
+        }
+
 
 @dataclass
 class IdeaUoDto:
@@ -32,3 +39,13 @@ class IdeaUoDto:
     is_accepted: bool
     is_rejected: bool
     chain_links: list[IdeaChanLinkUoDto]
+
+    def to_dict(self):
+        return {
+            'idea_id': self.idea_id,
+            'name': self.name,
+            'body': self.body,
+            'is_accepted': self.is_accepted,
+            'is_rejected': self.is_rejected,
+            'chain_links': [i.to_dict() for i in self.chain_links]
+        }
