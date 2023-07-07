@@ -1,0 +1,51 @@
+@startuml
+package mapper{
+    class ABSMapper
+}
+
+package domain{
+    class ABSAggregate
+    class ABSEntity
+    class ABSDTO
+
+    ABSAggregate <-- ABSEntity
+    ABSAggregate <-- ABSDTO
+}
+package data_layer {
+    package repository{
+        class ABSRepository{
+            +exists(): bool
+            +count(): int
+            +fetch_one(): DomainModel/DB_DTO
+            +fetch_many(): DomainModel/DB_DTO
+            +add(): None
+            +update_one(): None
+        }
+    }
+
+    package orm{
+        class ABSOrmModel
+    }
+
+    ABSRepository <-- ABSOrmModel
+}
+
+package outer_contracts{
+    class MessageMetaInformation{
+        +code: int
+        +message_uid: UUID
+        +message_chain_uid: UUID
+        +message_origin_service_name: str
+        +message_origin_service_instance_id: str
+        +number_of_attempt: int
+        +created_at: datetime
+        +contract_major_version: int
+        +contract_minor_version: int
+    }
+
+    class ABSMessage{
+        +meta: MessageMetaInformation
+        +payload: Any
+    }
+}
+@enduml

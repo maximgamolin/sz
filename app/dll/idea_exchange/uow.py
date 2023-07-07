@@ -17,7 +17,8 @@ from app.framework.data_access_layer.query_object.values import IN
 from app.framework.data_access_layer.repository import ABSRepository
 from app.framework.data_logic_layer.uow import BaseUnitOfWork
 from app.framework.injector.main import inject
-
+from app.framework.data_access_layer.lazy import LazyWrapper
+    
 
 class IdeaUOW(BaseUnitOfWork):
 
@@ -28,14 +29,16 @@ class IdeaUOW(BaseUnitOfWork):
             actor_repo_cls: Type[ABSRepository] = inject('ActorRepository'),
             user_repo_cls: Type[ABSRepository] = inject('UserRepository'),
             group_repo_cls: Type[ABSRepository] = inject('SiteGroupRepository'),
-            chain_link_repository_cls: Type[ABSRepository] = inject('ChainLinkRepository')
+            chain_link_repository_cls: Type[ABSRepository] = inject('ChainLinkRepository'),
+            manager_repository: Type[ABSRepository] = inject('ManagerRepository')
     ):
         self.idea_repo = idea_repo_cls(None)
         self.chain_repo = chain_repo_cls(None)
         self.actor_repo = actor_repo_cls(None)
         self.user_repo = user_repo_cls(None)
-        self.grop_repo = group_repo_cls(None)
+        self.group_repo = group_repo_cls(None)
         self.chain_link_repository = chain_link_repository_cls(None)
+        self.manager_repository = manager_repository(None)
 
     def add_idea_for_save(self, idea: Idea):
         pass
@@ -46,8 +49,13 @@ class IdeaUOW(BaseUnitOfWork):
     def fetch_idea(self, query_object: IdeaQO) -> Idea:
         pass
 
-    def fetch_manager(self, query_object: ManagerQO) -> Manager:
-        pass
+    def fetch_managers(self, manager_ids: list[int]) -> Iterable[Manager]:
+        user_qo = ManagerQO(user_id=IN(manager_ids))
+        lazy = LazyWrapper(
+            callable=self.manager_repository.fetch_many,
+            params={"filter_params": user_qo}
+        )
+        return lazy
 
     def build_group(self, group_dto: SiteGroupDalDto) -> ManagerGroup:
         user_qo = UserQO(user_id=IN(group_dto.users_ids_in_group))
@@ -62,11 +70,9 @@ class IdeaUOW(BaseUnitOfWork):
     def fetch_actor(self, actor_qo: ActorQO) -> Actor:
         actor_dto: ActorDalDto = self.actor_repo.fetch_one(filter_params=actor_qo)
         group_qo = SiteGroupQO(group_id=IN(actor_dto.groups_ids))
-        groups_dtos = self.grop_repo.fetch_many(filter_params=group_qo)
+        groups_dtos = self.group_repo.fetch_many(filter_params=group_qo)
         manager_groups = [self.build_group(i) for i in groups_dtos]
-        user_qo = UserQO(user_id=IN(actor_dto.manager_ids))
-        users = self.user_repo.fetch_many(filter_params=user_qo)
-        managers = [Manager.from_user(i) for i in users]
+        managers = self.fetch_managers(actor_dto.manager_ids)
         return Actor(
             actor_id=actor_dto.actor_id,
             name=actor_dto.name,
@@ -161,6 +167,7 @@ class IdeaUOW(BaseUnitOfWork):
             created_at=ASC()
         )
         ideas = self.fetch_ideas(query_object=idea_qo, order_object=idea_oo)
+        print(list(ideas[0].current_chain_link.actor.managers))
         return [self.convert_idea_to_output(i).to_dict() for i in ideas]
 
     def convert_chain_link_to_uo(self, chain_link: ChainLink, idea: Idea) -> IdeaChanLinkUoDto:

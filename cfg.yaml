@@ -12,3 +12,5 @@ injections:
       path: app.dal.auth.repo.SiteGroupRepository
     - name: ChainLinkRepository
       path: app.dal.idea_exchange.repo.ChainLinkDjangoRepository
+    - name: ManagerRepository
+      path: app.dal.idea_exchange.repo.ManagerRepository

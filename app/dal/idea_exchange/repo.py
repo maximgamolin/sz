@@ -1,8 +1,13 @@
+from abc import ABC
+
 from app.dal.idea_exchange.dto import IdeaDalDto, ChainDalDto, ActorDalDto, ChainLinkDalDto
 from app.domain.auth.core import UserID
 from app.domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
 from app.framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
 from idea.models import Idea, Chain, Actor, ChainLink
+
+from app.dal.auth.repo import UserRepository
+from app.dal.idea_exchange.mapper import ManagerMapper
 
 
 class IdeaRepository(DjangoRepository):
@@ -165,3 +170,9 @@ class ActorRepository(DjangoRepository):
             OoOrmMapperLine(orm_field_name='created_at',
                             oo_field_name='created_at')
         ]
+
+
+class ManagerRepository(UserRepository):
+
+    def _orm_to_dto(self, orm_model: 'CustomUser') -> 'Manager':
+        return ManagerMapper().from_orm_to_domain(orm_model)

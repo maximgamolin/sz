@@ -25,3 +25,8 @@ class ActorOO(ABSOrderObject):
 class ChainLinkOO(ABSOrderObject):
     created_at: Optional[Union[str, Empty, OrderParamComparison]] = Empty()
     order: Optional[Union[str, Empty, OrderParamComparison]] = Empty()
+
+
+@dataclass
+class ManagerOO(ABSOrderObject):
+    pass

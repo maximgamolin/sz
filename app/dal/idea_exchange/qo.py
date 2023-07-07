@@ -48,12 +48,7 @@ class ChainEditorQO(ABSQueryObject):
 
 @dataclass
 class ManagerQO(ABSQueryObject):
-    pass
-
-
-@dataclass
-class ManagerOO(ABSQueryObject):
-    pass
+    user_id: Optional[Union[UserID, QueryParamComparison, Empty]] = Empty()
 
 
 @dataclass

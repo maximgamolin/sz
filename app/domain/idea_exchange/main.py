@@ -1,11 +1,12 @@
 from dataclasses import dataclass
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Callable
 
 from app.domain.auth.core import User, Group
 from app.domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
 from app.exceptions.idea_exchange import ChainLinkCantBeDeleted
 from app.exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
 from app.framework.data_logic_layer.meta import BaseMeta, MetaManipulation
+from app.framework.data_access_layer.lazy import LazyLoaderInEntity
 
 
 @dataclass
@@ -56,12 +57,20 @@ class ChainEditor(User):
         )
 
 
-@dataclass
+
 class Actor(MetaManipulation):
     actor_id: ActorID
-    managers: list[Manager]
+    managers: list[Manager] = LazyLoaderInEntity()
     groups: list[ManagerGroup]
     name: str
+    
+    def __init__(self, actor_id: ActorID, name: str, managers, groups) -> None:
+        super().__init__()
+        self.actor_id = actor_id
+        self.name = name
+        self.groups = groups
+        self.managers = managers
+        
 
     def replace_id_from_meta(self):
         self.actor_id = self._meta.id_from_storage
