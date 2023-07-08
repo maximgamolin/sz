@@ -35,7 +35,7 @@ class SiteGroupRepository(DjangoRepository):
         return SiteGroupDalDto(
             group_id=GroupID(orm_model.id),
             name=orm_model.name,
-            users_ids_in_group=list(orm_model.user_set.values_list('id', flat=True))
+            users_ids_in_group=list(CustomUser.groups.through.objects.filter(sitegroup_id=orm_model.id).values_list('customuser_id', flat=True))
         )
 
     @property

@@ -36,16 +36,25 @@ class Manager(User):
         )
 
 
-@dataclass
 class ManagerGroup(Group):
-    managers: list[Manager]
+    managers: list[Manager] = LazyLoaderInEntity()
+    
+    def __init__(self, group_id, name, managers):
+        super().__init__(group_id, name)
+        self.managers = managers
+        
 
     def manager_in(self, manager: Manager):
         for i in self.managers:
             if i == manager:
                 return True
         return False
+    
+    def __str__(self):
+        return f"group_id={self.group_id} name={self.name} managers={self.managers}"
 
+    def __repr__(self) -> str:
+        return self.__str__()
 
 @dataclass
 class ChainEditor(User):
@@ -61,7 +70,7 @@ class ChainEditor(User):
 class Actor(MetaManipulation):
     actor_id: ActorID
     managers: list[Manager] = LazyLoaderInEntity()
-    groups: list[ManagerGroup]
+    groups: list[ManagerGroup] = LazyLoaderInEntity()
     name: str
     
     def __init__(self, actor_id: ActorID, name: str, managers, groups) -> None:

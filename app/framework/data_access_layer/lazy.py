@@ -19,7 +19,7 @@ class LazyLoaderInEntity():
     def __get__(self, obj, type=None):
         if not hasattr(obj, self.private_name):
             raise Exception(
-                f"Field '{self.public_name}' not exists in object, also check '{self.private_name}' in object in runtime"
+                f"Field '{self.public_name}' not exists in {obj}, also check '{self.private_name}' in object in runtime"
             )
         value = getattr(obj, self.private_name)
         if isinstance(value, LazyWrapper):

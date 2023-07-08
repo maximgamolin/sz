@@ -1,7 +1,6 @@
 from typing import Optional, Iterable, Type
 
 from app.cases.idea_exchange.dto import ChainLinkUiDto, ActorUiDto, IdeaUoDto, IdeaChanLinkUoDto
-from app.dal.auth.dto import SiteGroupDalDto
 from app.dal.auth.qo import UserQO, SiteGroupQO
 from app.dal.idea_exchange.dto import ActorDalDto, ChainLinkDalDto, IdeaDalDto, ChainDalDto
 from app.dal.idea_exchange.oo import IdeaOO, ChainLinkOO
@@ -10,15 +9,16 @@ from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, M
 from app.domain.auth.core import User, Group
 from app.domain.auth.core import UserID
 from app.domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
-    ChainEditor, ChainLink, Actor, Manager, ManagerGroup
+    ChainEditor, ChainLink, Actor
 from app.domain.idea_exchange.types import ChainLinkID, ChainID
 from app.framework.data_access_layer.order_object.values import ASC
 from app.framework.data_access_layer.query_object.values import IN
 from app.framework.data_access_layer.repository import ABSRepository
 from app.framework.data_logic_layer.uow import BaseUnitOfWork
 from app.framework.injector.main import inject
-from app.framework.data_access_layer.lazy import LazyWrapper
-    
+from app.dll.idea_exchange.builders import ManagerBuilder, ManagerGroupsBuilder
+
+
 
 class IdeaUOW(BaseUnitOfWork):
 
@@ -48,31 +48,21 @@ class IdeaUOW(BaseUnitOfWork):
 
     def fetch_idea(self, query_object: IdeaQO) -> Idea:
         pass
-
-    def fetch_managers(self, manager_ids: list[int]) -> Iterable[Manager]:
-        user_qo = ManagerQO(user_id=IN(manager_ids))
-        lazy = LazyWrapper(
-            callable=self.manager_repository.fetch_many,
-            params={"filter_params": user_qo}
-        )
-        return lazy
-
-    def build_group(self, group_dto: SiteGroupDalDto) -> ManagerGroup:
-        user_qo = UserQO(user_id=IN(group_dto.users_ids_in_group))
-        users = self.user_repo.fetch_many(filter_params=user_qo)
-        managers = [Manager.from_user(i) for i in users]
-        return ManagerGroup(
-            group_id=group_dto.group_id,
-            name=group_dto.name,
-            managers=managers,
-        )
-
+    
     def fetch_actor(self, actor_qo: ActorQO) -> Actor:
         actor_dto: ActorDalDto = self.actor_repo.fetch_one(filter_params=actor_qo)
         group_qo = SiteGroupQO(group_id=IN(actor_dto.groups_ids))
-        groups_dtos = self.group_repo.fetch_many(filter_params=group_qo)
-        manager_groups = [self.build_group(i) for i in groups_dtos]
-        managers = self.fetch_managers(actor_dto.manager_ids)
+        manager_groups = ManagerGroupsBuilder(
+            group_repo=self.group_repo,
+            group_qo=group_qo,
+            manager_builder=ManagerBuilder,
+            manager_repo=self.manager_repository
+        ).build_lazy()
+        managers_qo = ManagerQO(user_id=IN(actor_dto.manager_ids))
+        managers = ManagerBuilder(
+            manager_repo=self.manager_repository,
+            manager_qo=managers_qo
+        ).build_lazy()
         return Actor(
             actor_id=actor_dto.actor_id,
             name=actor_dto.name,
@@ -167,7 +157,6 @@ class IdeaUOW(BaseUnitOfWork):
             created_at=ASC()
         )
         ideas = self.fetch_ideas(query_object=idea_qo, order_object=idea_oo)
-        print(list(ideas[0].current_chain_link.actor.managers))
         return [self.convert_idea_to_output(i).to_dict() for i in ideas]
 
     def convert_chain_link_to_uo(self, chain_link: ChainLink, idea: Idea) -> IdeaChanLinkUoDto:
