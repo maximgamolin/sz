@@ -2,22 +2,20 @@ from typing import Optional, Iterable, Type
 
 from app.cases.idea_exchange.dto import ChainLinkUiDto, ActorUiDto, IdeaUoDto, IdeaChanLinkUoDto
 from app.dal.auth.qo import UserQO, SiteGroupQO
-from app.dal.idea_exchange.dto import ActorDalDto, ChainLinkDalDto, IdeaDalDto, ChainDalDto
+from app.dal.idea_exchange.dto import ChainLinkDalDto, IdeaDalDto, ChainDalDto
 from app.dal.idea_exchange.oo import IdeaOO, ChainLinkOO
-from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ManagerQO, ActorQO, \
+from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ActorQO, \
     ChainLinkQO
+from app.dll.idea_exchange.builders import ManagerBuilder, ManagerGroupsBuilder, ActorBuilder
 from app.domain.auth.core import User, Group
 from app.domain.auth.core import UserID
 from app.domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor
 from app.domain.idea_exchange.types import ChainLinkID, ChainID
 from app.framework.data_access_layer.order_object.values import ASC
-from app.framework.data_access_layer.query_object.values import IN
 from app.framework.data_access_layer.repository import ABSRepository
 from app.framework.data_logic_layer.uow import BaseUnitOfWork
 from app.framework.injector.main import inject
-from app.dll.idea_exchange.builders import ManagerBuilder, ManagerGroupsBuilder
-
 
 
 class IdeaUOW(BaseUnitOfWork):
@@ -48,31 +46,17 @@ class IdeaUOW(BaseUnitOfWork):
 
     def fetch_idea(self, query_object: IdeaQO) -> Idea:
         pass
-    
-    def fetch_actor(self, actor_qo: ActorQO) -> Actor:
-        actor_dto: ActorDalDto = self.actor_repo.fetch_one(filter_params=actor_qo)
-        group_qo = SiteGroupQO(group_id=IN(actor_dto.groups_ids))
-        manager_groups = ManagerGroupsBuilder(
-            group_repo=self.group_repo,
-            group_qo=group_qo,
-            manager_builder=ManagerBuilder,
-            manager_repo=self.manager_repository
-        ).build_lazy()
-        managers_qo = ManagerQO(user_id=IN(actor_dto.manager_ids))
-        managers = ManagerBuilder(
-            manager_repo=self.manager_repository,
-            manager_qo=managers_qo
-        ).build_lazy()
-        return Actor(
-            actor_id=actor_dto.actor_id,
-            name=actor_dto.name,
-            managers=managers,
-            groups=manager_groups
-        )
 
     def _build_chain_links(self, chain_link_dto: ChainLinkDalDto) -> ChainLink:
         actor_qo = ActorQO(actor_id=chain_link_dto.actor_id)
-        actor = self.fetch_actor(actor_qo)
+        actor = ActorBuilder(
+            actor_repo=self.actor_repo,
+            actor_qo=actor_qo,
+            manager_groups_builder=ManagerGroupsBuilder,
+            group_repo=self.group_repo,
+            manager_builder=ManagerBuilder,
+            manager_repo=self.manager_repository
+        ).build_lazy()
         return ChainLink(
                 chain_link_id=chain_link_dto.chain_link_id,
                 actor=actor,

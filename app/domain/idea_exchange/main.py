@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from typing import Optional, Iterable, Callable
+from typing import Optional, Iterable, Union
 
 from app.domain.auth.core import User, Group
 from app.domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
 from app.exceptions.idea_exchange import ChainLinkCantBeDeleted
 from app.exceptions.idea_exchange import ChainLinkNotInChain, NoChainLinksInChain, IncorrectChainLink
+from app.framework.data_access_layer.lazy import LazyLoaderInEntity, LazyWrapper
 from app.framework.data_logic_layer.meta import BaseMeta, MetaManipulation
-from app.framework.data_access_layer.lazy import LazyLoaderInEntity
 
 
 @dataclass
@@ -37,7 +37,7 @@ class Manager(User):
 
 
 class ManagerGroup(Group):
-    managers: list[Manager] = LazyLoaderInEntity()
+    managers: LazyLoaderInEntity[list[Manager]] = LazyLoaderInEntity()
     
     def __init__(self, group_id, name, managers):
         super().__init__(group_id, name)
@@ -69,8 +69,8 @@ class ChainEditor(User):
 
 class Actor(MetaManipulation):
     actor_id: ActorID
-    managers: list[Manager] = LazyLoaderInEntity()
-    groups: list[ManagerGroup] = LazyLoaderInEntity()
+    managers: LazyLoaderInEntity[list[Manager]] = LazyLoaderInEntity()
+    groups: LazyLoaderInEntity[list[ManagerGroup]] = LazyLoaderInEntity()
     name: str
     
     def __init__(self, actor_id: ActorID, name: str, managers, groups) -> None:
@@ -104,10 +104,12 @@ class ChainLink(MetaManipulation):
     REJECT = "Отклонено"
 
     __slots__ = (
-        'chain_link_id', '_actor',
+        'chain_link_id',
         '_meta', '_name', '_is_technical',
         '_number_of_related_ideas'
     )
+    
+    _actor: LazyLoaderInEntity[Actor] = LazyLoaderInEntity()
 
     @dataclass
     class Meta(BaseMeta):
@@ -116,7 +118,7 @@ class ChainLink(MetaManipulation):
     def __init__(
             self,
             chain_link_id: Optional[ChainLinkID],
-            actor: Optional[Actor],
+            actor: Optional[Union[Actor, LazyWrapper[Actor]]],
             name: str,
             number_of_related_ideas: int,
             is_technical: bool = False,
@@ -185,9 +187,9 @@ class ChainLink(MetaManipulation):
     def get_is_technical(self):
         return self._is_technical
 
-    name = property(fget=get_name, fset=set_name)
-    actor = property(fget=get_actor, fset=set_actor)
-    is_technical = property(fget=get_is_technical)
+    name: str = property(fget=get_name, fset=set_name)
+    actor: Actor = property(fget=get_actor, fset=set_actor)
+    is_technical: bool = property(fget=get_is_technical)
 
 
 class Chain(MetaManipulation):

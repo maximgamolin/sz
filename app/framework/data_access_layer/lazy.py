@@ -1,6 +1,8 @@
-from typing import Callable
+from typing import Callable, TypeVar, Generic, Union
 
-class LazyWrapper:
+T = TypeVar('T')
+
+class LazyWrapper(Generic[T]):
     
     def __init__(self, callable: Callable, params: dict) -> None:
         self._repo_method = callable
@@ -10,13 +12,14 @@ class LazyWrapper:
         return self._repo_method(**self._params)
 
 
-class LazyLoaderInEntity():
+
+class LazyLoaderInEntity(Generic[T]):
     
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner, name: str):
         self.public_name = name
-        self.private_name = '_' + name
+        self.private_name = '_lazy_wrapper_' + name
     
-    def __get__(self, obj, type=None):
+    def __get__(self, obj, type=None) -> T:
         if not hasattr(obj, self.private_name):
             raise Exception(
                 f"Field '{self.public_name}' not exists in {obj}, also check '{self.private_name}' in object in runtime"
@@ -26,6 +29,6 @@ class LazyLoaderInEntity():
             return value.fetch()
         return value
 
-    def __set__(self, obj, value):
+    def __set__(self, obj: Union[LazyWrapper[T]], value):
         setattr(obj, self.private_name, value)
 
