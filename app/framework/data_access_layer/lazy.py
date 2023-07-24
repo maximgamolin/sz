@@ -18,7 +18,16 @@ class LazyLoaderInEntity(Generic[T]):
     def __set_name__(self, owner, name: str):
         self.public_name = name
         self.private_name = '_lazy_wrapper_' + name
-    
+        self.cached_name = '_lazy_wrapper_cache_' + name
+
+    def _process_lasy_wrapper(self, obj, value: LazyWrapper[T]) -> T:
+        if not hasattr(obj, self.cached_name):
+            value = value.fetch()
+            setattr(obj, self.cached_name, value)
+        else:
+            value = getattr(obj, self.cached_name)
+        return value
+
     def __get__(self, obj, type=None) -> T:
         if not hasattr(obj, self.private_name):
             raise Exception(
@@ -26,7 +35,7 @@ class LazyLoaderInEntity(Generic[T]):
             )
         value = getattr(obj, self.private_name)
         if isinstance(value, LazyWrapper):
-            return value.fetch()
+            return self._process_lasy_wrapper(obj, value)
         return value
 
     def __set__(self, obj: Union[LazyWrapper[T]], value):
