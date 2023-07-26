@@ -2,16 +2,16 @@ from typing import Optional, Iterable, Type
 
 from app.cases.idea_exchange.dto import ChainLinkUiDto, ActorUiDto, IdeaUoDto, IdeaChanLinkUoDto
 from app.dal.auth.qo import UserQO, SiteGroupQO
-from app.dal.idea_exchange.dto import ChainLinkDalDto, IdeaDalDto, ChainDalDto
+from app.dal.idea_exchange.dto import IdeaDalDto, ChainDalDto
 from app.dal.idea_exchange.oo import IdeaOO, ChainLinkOO
-from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ActorQO, \
-    ChainLinkQO
-from app.dll.idea_exchange.builders import ManagerBuilder, ManagerGroupsBuilder, ActorBuilder
+from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ChainEditorQO, ChainLinkQO
+from app.dll.idea_exchange.builders import ActorBuilder, ChainLinkBuilder
 from app.domain.auth.core import User, Group
 from app.domain.auth.core import UserID
 from app.domain.idea_exchange.main import IdeaAuthor, Chain, Idea, \
     ChainEditor, ChainLink, Actor
 from app.domain.idea_exchange.types import ChainLinkID, ChainID
+from app.framework.data_access_layer.lazy import LazyWrapper
 from app.framework.data_access_layer.order_object.values import ASC
 from app.framework.data_access_layer.repository import ABSRepository
 from app.framework.data_logic_layer.uow import BaseUnitOfWork
@@ -47,26 +47,7 @@ class IdeaUOW(BaseUnitOfWork):
     def fetch_idea(self, query_object: IdeaQO) -> Idea:
         pass
 
-    def _build_chain_links(self, chain_link_dto: ChainLinkDalDto) -> ChainLink:
-        actor_qo = ActorQO(actor_id=chain_link_dto.actor_id)
-        actor = ActorBuilder(
-            actor_repo=self.actor_repo,
-            actor_qo=actor_qo,
-            manager_groups_builder=ManagerGroupsBuilder,
-            group_repo=self.group_repo,
-            manager_builder=ManagerBuilder,
-            manager_repo=self.manager_repository
-        ).build_lazy()
-        return ChainLink(
-                chain_link_id=chain_link_dto.chain_link_id,
-                actor=actor,
-                name=chain_link_dto.name,
-                number_of_related_ideas=chain_link_dto.number_of_related_ideas,
-                is_technical=chain_link_dto.is_technical,
-                _meta_is_deleted=chain_link_dto.is_deleted
-            )
-
-    def fetch_chain_chain_links(self, chain_id: ChainID) -> list[ChainLink]:
+    def fetch_chain_chain_links(self, chain_id: ChainID) -> LazyWrapper[Iterable[ChainLink]]:
         chain_link_qo = ChainLinkQO(
             is_technical=False,
             chain_id=chain_id,
@@ -75,22 +56,30 @@ class IdeaUOW(BaseUnitOfWork):
         chain_link_oo = ChainLinkOO(
             order=ASC()
         )
-        chain_links_dtos: Iterable[ChainLinkDalDto] = self.chain_link_repository.fetch_many(
-            filter_params=chain_link_qo,
-            order_params=chain_link_oo
-        )
-        result = []
-        for chain_link_dto in chain_links_dtos:
-            result.append(self._build_chain_links(chain_link_dto))
-        return result
+        return ChainLinkBuilder(
+            actor_repo=self.actor_repo,
+            group_repo=self.group_repo,
+            manager_repo=self.manager_repository,
+            chain_link_repo=self.chain_link_repository,
+            chain_link_qo=chain_link_qo,
+            actor_builder=ActorBuilder,
+            chain_link_oo=chain_link_oo
+        ).build_lazy_many()
+
 
     def fetch_one_chain_link(self, chain_link_id: ChainLinkID):
         chain_link_qo = ChainLinkQO(
             chain_link_id=chain_link_id,
             is_deleted=False
         )
-        chain_link_dto: ChainLinkDalDto = self.chain_link_repository.fetch_one(filter_params=chain_link_qo)
-        return self._build_chain_links(chain_link_dto)
+        return ChainLinkBuilder(
+            actor_repo=self.actor_repo,
+            group_repo=self.group_repo,
+            manager_repo=self.manager_repository,
+            chain_link_repo=self.chain_link_repository,
+            chain_link_qo=chain_link_qo,
+            actor_builder=ActorBuilder
+        ).build_lazy_one()
 
     def fetch_chain(self, chain_id: ChainID) -> Chain:
         chain_qo = ChainQO(chain_id=chain_id)

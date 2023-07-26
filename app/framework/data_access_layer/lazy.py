@@ -1,4 +1,4 @@
-from typing import Callable, TypeVar, Generic, Union
+from typing import Callable, TypeVar, Generic, Union, Generator
 
 T = TypeVar('T')
 
@@ -22,11 +22,13 @@ class LazyLoaderInEntity(Generic[T]):
 
     def _process_lasy_wrapper(self, obj, value: LazyWrapper[T]) -> T:
         if not hasattr(obj, self.cached_name):
-            value = value.fetch()
-            setattr(obj, self.cached_name, value)
+            new_value = value.fetch()
+            if not isinstance(new_value, Generator):
+                # TODO разобраться с механизмом кеширования генераторов, кастомный генератор придумать?
+                setattr(obj, self.cached_name, new_value)
         else:
-            value = getattr(obj, self.cached_name)
-        return value
+            new_value = getattr(obj, self.cached_name)
+        return new_value
 
     def __get__(self, obj, type=None) -> T:
         if not hasattr(obj, self.private_name):
@@ -38,6 +40,6 @@ class LazyLoaderInEntity(Generic[T]):
             return self._process_lasy_wrapper(obj, value)
         return value
 
-    def __set__(self, obj: Union[LazyWrapper[T]], value):
+    def __set__(self, obj: Union[LazyWrapper[T]|T|None], value) -> None:
         setattr(obj, self.private_name, value)
 

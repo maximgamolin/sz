@@ -18,7 +18,7 @@ class ManagerBuilder(BaseEntityFromRepoBuilder):
         self._manager_repo = manager_repo
         self._manager_qo = manager_qo
     
-    def build_lazy_many(self) -> LazyWrapper:
+    def build_lazy_many(self) -> LazyWrapper[Iterable[Manager]]:
         lazy = LazyWrapper(
             callable=self._manager_repo.fetch_many,
             params={"filter_params": self._manager_qo}
@@ -26,7 +26,7 @@ class ManagerBuilder(BaseEntityFromRepoBuilder):
         return lazy
     
     def build_many(self) -> Iterable[Manager]:
-        return self._manager_repo.fetch_many(filter_params=self._manager_qo)
+        yield from self._manager_repo.fetch_many(filter_params=self._manager_qo)
 
 
 class ManagerGroupsBuilder(BaseEntityFromRepoBuilder):
@@ -46,23 +46,20 @@ class ManagerGroupsBuilder(BaseEntityFromRepoBuilder):
     
     def _build_lazy_many(self, *args, **kwargs) -> Iterable[ManagerGroup]:
         groups_dtos = self._group_repo.fetch_many(filter_params=self._group_qo)
-        result = []
         for i in groups_dtos:
             manager_qo = ManagerQO(user_id=IN(i.users_ids_in_group))
             managers = self._manager_builder(
                 manager_repo=self._manager_repo,
                 manager_qo=manager_qo
             ).build_lazy_many()
-            result.append(
-                ManagerGroup(
+            yield ManagerGroup(
                     group_id=i.group_id,
                     name=i.name,
                     managers=managers,
                 )
-            )
-        return result
+
     
-    def build_lazy_many(self):
+    def build_lazy_many(self) -> LazyWrapper[Iterable[ManagerGroup]]:
         lazy = LazyWrapper(
             callable=self._build_lazy_many,
             params={}
@@ -89,7 +86,7 @@ class ActorBuilder(BaseEntityFromRepoBuilder):
         self._manager_builder = manager_builder
         self._manager_repo = manager_repo
     
-    def _build_lazy_one(self, *args, **kwargs):
+    def _build_lazy_one(self, *args, **kwargs) -> Actor:
         actor_dto: ActorDalDto = self._actor_repo.fetch_one(filter_params=self._actor_qo)
         group_qo = SiteGroupQO(group_id=IN(actor_dto.groups_ids))
         manager_groups = self._manager_groups_builder(
@@ -110,7 +107,7 @@ class ActorBuilder(BaseEntityFromRepoBuilder):
             groups=manager_groups
         )
     
-    def build_lazy(self):
+    def build_lazy(self) -> LazyWrapper[Actor]:
         lazy = LazyWrapper(
             callable=self._build_lazy_one,
             params={}
@@ -121,6 +118,10 @@ class ChainLinkBuilder(BaseEntityFromRepoBuilder):
     
     def __init__(
             self,
+            actor_repo: ABSRepository,
+            group_repo: ABSRepository,
+            manager_repo: ABSRepository,
+            chain_link_repo: ABSRepository,
             chain_link_qo: ChainLinkQO,
             actor_builder: Type['ActorBuilder'],
             chain_link_oo: ChainLinkOO = None
@@ -129,16 +130,20 @@ class ChainLinkBuilder(BaseEntityFromRepoBuilder):
         self._chain_link_qo = chain_link_qo
         self._chain_link_oo = chain_link_oo
         self._actor_builder = actor_builder
+        self._actor_repo = actor_repo
+        self._group_repo = group_repo
+        self._manager_repo = manager_repo
+        self._chain_link_repo = chain_link_repo
     
     def _build_chain_link(self, chain_link_dto: ChainLinkDalDto) -> ChainLink:
         actor_qo = ActorQO(actor_id=chain_link_dto.actor_id)
         actor = self._actor_builder(
-            actor_repo=self.actor_repo,
+            actor_repo=self._actor_repo,
             actor_qo=actor_qo,
             manager_groups_builder=ManagerGroupsBuilder,
-            group_repo=self.group_repo,
+            group_repo=self._group_repo,
             manager_builder=ManagerBuilder,
-            manager_repo=self.manager_repository
+            manager_repo=self._manager_repo
         ).build_lazy()
         return ChainLink(
                 chain_link_id=chain_link_dto.chain_link_id,
@@ -150,24 +155,25 @@ class ChainLinkBuilder(BaseEntityFromRepoBuilder):
             )
     
     def _build_lazy_one(self) -> ChainLink:
-        chain_link_dto: ChainLinkDalDto = self.chain_link_repository.fetch_one(filter_params=self.chain_link_qo)
+        chain_link_dto: ChainLinkDalDto = self._chain_link_repo.fetch_one(filter_params=self._chain_link_qo)
         return self._build_chain_link(chain_link_dto)
     
-    def build_lazy_one(self):
+    def build_lazy_one(self) -> LazyWrapper[ChainLink]:
         lazy = LazyWrapper(
             callable=self._build_lazy_one,
             params={}
         )
         return lazy
     
-    def _build_lazy_many(self) -> list[ChainLink]:
+    def _build_lazy_many(self) -> Iterable[ChainLink]:
         params = {'filter_params': self._chain_link_qo}
         if self._chain_link_oo is not None:
             params['order_params'] = self._chain_link_oo
-        chain_links_dtos: Iterable[ChainLinkDalDto] = self.chain_link_repository.fetch_many(**params)
-        return [self._build_chain_link(i) for i in chain_links_dtos]
+        chain_links_dtos: Iterable[ChainLinkDalDto] = self._chain_link_repo.fetch_many(**params)
+        for i in chain_links_dtos:
+            yield self._build_chain_link(i)
     
-    def build_many(self):
+    def build_lazy_many(self) -> LazyWrapper[Iterable[ChainLink]]:
         lazy = LazyWrapper(
             callable=self._build_lazy_many,
             params={}

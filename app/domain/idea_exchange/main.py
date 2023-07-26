@@ -195,19 +195,23 @@ class ChainLink(MetaManipulation):
 class Chain(MetaManipulation):
 
     __slots__ = (
-        'chain_id', 'chain_links',
-        'author', '_meta',
-        'reject_chain_link', 'accept_chain_link',
+        'chain_id',
+        '_meta',
         'dropped_chain_links'
     )
+
+    chain_links: LazyLoaderInEntity[Iterable[ChainLink]] = LazyLoaderInEntity()
+    reject_chain_link: LazyLoaderInEntity[ChainLink] = LazyLoaderInEntity()
+    accept_chain_link: LazyLoaderInEntity[ChainLink] = LazyLoaderInEntity()
+    author: LazyLoaderInEntity[IdeaAuthor] = LazyLoaderInEntity()
 
     def __init__(
             self,
             chain_id: Optional[ChainID],
-            chain_links: Iterable[ChainLink],
+            chain_links: Union[Iterable[ChainLink], LazyWrapper[Iterable[ChainLink]]],
             author: ChainEditor,
-            reject_chain_link: ChainLink,
-            accept_chain_link: ChainLink,
+            reject_chain_link: Union[LazyWrapper[ChainLink], ChainLink],
+            accept_chain_link: Union[LazyWrapper[ChainLink], ChainLink],
             _meta_is_deleted: bool = False,
             _meta_is_changed: bool = False
     ):
@@ -302,18 +306,20 @@ class Chain(MetaManipulation):
 class Idea(MetaManipulation):
 
     __slots__ = (
-        'author', 'body', 'chain', 'idea_id',
+        'author', 'body', 'idea_id',
         'current_chain_link', '_meta'
     )
 
     FIRST_POSITION = 1
+
+    chain: LazyLoaderInEntity[Chain] = LazyLoaderInEntity()
 
     def __init__(
             self,
             author: IdeaAuthor,
             name: str,
             body: str,
-            chain: Chain,
+            chain: Union[Chain, LazyWrapper[Chain]],
             current_chain_link: ChainLink,
             idea_id: Optional[IdeaID] = None,
             _meta_is_deleted: bool = False,
