@@ -1,8 +1,9 @@
 import abc
-from typing import Generic, Iterable, Optional, TypeVar, Union
+from typing import Generic, Optional, TypeVar, Union
 
 from app.exceptions.orm import NotFoundException
 from app.framework.data_access_layer.basic import EntityTypeVar
+from app.framework.data_access_layer.db_result_generator import DBResultGenerator
 from app.framework.data_access_layer.order_object.base import ABSOrderObject
 from app.framework.data_access_layer.query_object.base import ABSQueryObject
 from app.framework.domain.abs import IDTO, IEntity
@@ -61,7 +62,7 @@ class ABSRepository(abc.ABC):
             order_params: Optional[ABSOrderObject] = None,
             offset: int = 0,
             limit: Optional[int] = None,
-            chunk_size: int = 1000) -> Iterable[EntityTypeVar]:
+            chunk_size: int = 1000) -> DBResultGenerator[EntityTypeVar]:
         pass
 
     @abc.abstractmethod

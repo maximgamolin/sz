@@ -6,6 +6,7 @@ from app.dal.idea_exchange.dto import ChainLinkDalDto
 from app.dal.idea_exchange.oo import ChainLinkOO
 from app.dal.idea_exchange.qo import ManagerQO, ActorQO, ChainLinkQO
 from app.domain.idea_exchange.main import Manager, ManagerGroup, Actor, ChainLink
+from app.framework.data_access_layer.db_result_generator import DBResultGenerator
 from app.framework.data_access_layer.lazy import LazyWrapper
 from app.framework.data_access_layer.query_object.values import IN
 from app.framework.data_access_layer.repository import ABSRepository
@@ -18,7 +19,7 @@ class ManagerBuilder(BaseEntityFromRepoBuilder):
         self._manager_repo = manager_repo
         self._manager_qo = manager_qo
     
-    def build_lazy_many(self) -> LazyWrapper[Iterable[Manager]]:
+    def build_lazy_many(self) -> LazyWrapper[DBResultGenerator[Manager]]:
         lazy = LazyWrapper(
             callable=self._manager_repo.fetch_many,
             params={"filter_params": self._manager_qo}
@@ -43,20 +44,22 @@ class ManagerGroupsBuilder(BaseEntityFromRepoBuilder):
         self._group_qo = group_qo
         self._manager_builder = manager_builder
         self._manager_repo = manager_repo
-    
-    def _build_lazy_many(self, *args, **kwargs) -> Iterable[ManagerGroup]:
+
+    def _build_manager_group(self, group_dto):
+        manager_qo = ManagerQO(user_id=IN(group_dto.users_ids_in_group))
+        managers = self._manager_builder(
+            manager_repo=self._manager_repo,
+            manager_qo=manager_qo
+        ).build_lazy_many()
+        return ManagerGroup(
+                group_id=group_dto.group_id,
+                name=group_dto.name,
+                managers=managers,
+            )
+
+    def _build_lazy_many(self, *args, **kwargs) -> DBResultGenerator[ManagerGroup]:
         groups_dtos = self._group_repo.fetch_many(filter_params=self._group_qo)
-        for i in groups_dtos:
-            manager_qo = ManagerQO(user_id=IN(i.users_ids_in_group))
-            managers = self._manager_builder(
-                manager_repo=self._manager_repo,
-                manager_qo=manager_qo
-            ).build_lazy_many()
-            yield ManagerGroup(
-                    group_id=i.group_id,
-                    name=i.name,
-                    managers=managers,
-                )
+        return DBResultGenerator((self._build_manager_group(i) for i in groups_dtos))
 
     
     def build_lazy_many(self) -> LazyWrapper[Iterable[ManagerGroup]]:
@@ -170,8 +173,7 @@ class ChainLinkBuilder(BaseEntityFromRepoBuilder):
         if self._chain_link_oo is not None:
             params['order_params'] = self._chain_link_oo
         chain_links_dtos: Iterable[ChainLinkDalDto] = self._chain_link_repo.fetch_many(**params)
-        for i in chain_links_dtos:
-            yield self._build_chain_link(i)
+        return DBResultGenerator((self._build_chain_link(i) for i in chain_links_dtos))
     
     def build_lazy_many(self) -> LazyWrapper[Iterable[ChainLink]]:
         lazy = LazyWrapper(

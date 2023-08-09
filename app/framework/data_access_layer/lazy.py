@@ -1,5 +1,7 @@
 from typing import Callable, TypeVar, Generic, Union, Generator
 
+from app.framework.data_access_layer.db_result_generator import DBResultGenerator
+
 T = TypeVar('T')
 
 class LazyWrapper(Generic[T]):
@@ -23,11 +25,13 @@ class LazyLoaderInEntity(Generic[T]):
     def _process_lasy_wrapper(self, obj, value: LazyWrapper[T]) -> T:
         if not hasattr(obj, self.cached_name):
             new_value = value.fetch()
-            if not isinstance(new_value, Generator):
-                # TODO разобраться с механизмом кеширования генераторов, кастомный генератор придумать?
-                setattr(obj, self.cached_name, new_value)
+            if isinstance(new_value, Generator):
+                raise Exception('Generators are not allowed, use DBResultGenerator')
+            setattr(obj, self.cached_name, new_value)
         else:
             new_value = getattr(obj, self.cached_name)
+            if isinstance(new_value, DBResultGenerator):
+                new_value.drop_position()
         return new_value
 
     def __get__(self, obj, type=None) -> T:

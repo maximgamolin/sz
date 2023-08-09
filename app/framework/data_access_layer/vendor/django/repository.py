@@ -1,8 +1,9 @@
 from abc import ABC
-from typing import Generic, Optional, Iterable, Callable, Any
+from typing import Generic, Optional, Callable, Any
 
 from app.exceptions.orm import NotFoundException
 from app.framework.data_access_layer.basic import EntityTypeVar
+from app.framework.data_access_layer.db_result_generator import DBResultGenerator
 from app.framework.data_access_layer.order_object.base import ABSOrderObject
 from app.framework.data_access_layer.order_object.values import ASC, DESC
 from app.framework.data_access_layer.query_object.base import ABSQueryObject
@@ -125,7 +126,7 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
             offset: int = 0,
             limit: Optional[int] = None,
             chunk_size: int = 1000
-    ) -> Iterable[EntityTypeVar]:
+    ) -> DBResultGenerator[EntityTypeVar]:
         orm_ideas = self.model.objects
         if filter_params:
             filter_params_for_orm = self._qo_to_filter_params(filter_params)
@@ -136,8 +137,7 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
             orm_ideas = orm_ideas.order_by(*order_params_for_orm)
 
         orm_ideas.iterator(chunk_size=chunk_size)
-        for orm_idea in orm_ideas:
-            yield self._orm_to_dto(orm_idea)
+        return DBResultGenerator((self._orm_to_dto(i) for i in orm_ideas))
 
     def add(self, domain_model: Generic[EntityTypeVar]) -> None:
         pass
