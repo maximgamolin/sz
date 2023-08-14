@@ -3,4 +3,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ABSOrderObject:
-    pass
+    """
+    Базовый класс для объекта сортировки используемый для работы с ABSRepository
+    """

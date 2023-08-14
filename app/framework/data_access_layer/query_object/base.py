@@ -3,4 +3,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ABSQueryObject:
-    pass
+    """
+    Базовый класс для объекта фильтрации используемый для работы с ABSRepository
+    """

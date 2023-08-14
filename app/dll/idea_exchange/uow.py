@@ -38,16 +38,7 @@ class IdeaUOW(BaseUnitOfWork):
         self.chain_link_repository = chain_link_repository_cls(None)
         self.manager_repository = manager_repository(None)
 
-    def add_idea_for_save(self, idea: Idea):
-        pass
-
-    def fetch_author(self, query_object: AuthorQO) -> IdeaAuthor:
-        pass
-
-    def fetch_idea(self, query_object: IdeaQO) -> Idea:
-        pass
-
-    def fetch_chain_chain_links(self, chain_id: ChainID) -> LazyWrapper[Iterable[ChainLink]]:
+    def _fetch_chain_chain_links(self, chain_id: ChainID) -> LazyWrapper[Iterable[ChainLink]]:
         chain_link_qo = ChainLinkQO(
             is_technical=False,
             chain_id=chain_id,
@@ -67,7 +58,7 @@ class IdeaUOW(BaseUnitOfWork):
         ).build_lazy_many()
 
 
-    def fetch_one_chain_link(self, chain_link_id: ChainLinkID):
+    def _fetch_one_chain_link(self, chain_link_id: ChainLinkID):
         chain_link_qo = ChainLinkQO(
             chain_link_id=chain_link_id,
             is_deleted=False
@@ -84,9 +75,9 @@ class IdeaUOW(BaseUnitOfWork):
     def fetch_chain(self, chain_id: ChainID) -> Chain:
         chain_qo = ChainQO(chain_id=chain_id)
         chain_dto: ChainDalDto = self.chain_repo.fetch_one(filter_params=chain_qo)
-        chain_links = self.fetch_chain_chain_links(chain_dto.chain_id)
-        accept_chain_link = self.fetch_one_chain_link(chain_link_id=chain_dto.accept_chain_link_id)
-        reject_chain_link = self.fetch_one_chain_link(chain_link_id=chain_dto.reject_chain_link_id)
+        chain_links = self._fetch_chain_chain_links(chain_dto.chain_id)
+        accept_chain_link = self._fetch_one_chain_link(chain_link_id=chain_dto.accept_chain_link_id)
+        reject_chain_link = self._fetch_one_chain_link(chain_link_id=chain_dto.reject_chain_link_id)
         user_qo = UserQO(user_id=chain_dto.author_id)
         user_author = self.user_repo.fetch_one(filter_params=user_qo)
         return Chain(

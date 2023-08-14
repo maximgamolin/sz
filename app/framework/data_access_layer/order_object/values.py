@@ -1,10 +1,18 @@
-class OrderParamComparison:
-    pass
+from abc import ABC
+
+class OrderParamComparison(ABC):
+    """
+    Базовый класс для управления параметрами сортировки, используется только с ABSOrderObject
+    """
 
 
 class ASC(OrderParamComparison):
-    pass
+    """
+    Прямой порядок сортировки (по возрастанию), от меньшего к большему
+    """
 
 
 class DESC(OrderParamComparison):
-    pass
+    """
+    Обратный порядок сортировки (по убыванию), от большего к меньшему
+    """

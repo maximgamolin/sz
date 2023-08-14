@@ -1,12 +1,21 @@
-class QueryParamComparison:
+from abc import ABC
+from typing import Any
 
-    def __init__(self, value):
+class QueryParamComparison(ABC):
+    """
+    Базовый класс для управления параметрами фильтрации, используется только с ABSOrderObject
+    """
+    def __init__(self, value: Any):
         self.value = value
 
 
 class GTE(QueryParamComparison):
-    pass
+    """
+    Эквивалент <=
+    """
 
 
 class IN(QueryParamComparison):
-    pass
+    """
+    Для проверки элементов в списке
+    """

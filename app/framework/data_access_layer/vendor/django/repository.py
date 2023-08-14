@@ -42,7 +42,6 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
         raise NotImplementedError()
 
     def _extract_filter_val_for_orm(self, mapper_line: QoOrmMapperLine, val) -> dict:
-        value = None
         if isinstance(val, IN):
             orm_query_param_name = f'{mapper_line.orm_field_name}__in'
             value = [mapper_line.modifier(i) for i in val.value]
