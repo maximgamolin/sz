@@ -163,7 +163,7 @@ class ChainLinkBuilder(BaseEntityFromRepoBuilder):
     
     def build_lazy_one(self) -> LazyWrapper[ChainLink]:
         lazy = LazyWrapper(
-            callable=self._build_lazy_one,
+            method=self._build_lazy_one,
             params={}
         )
         return lazy
@@ -177,7 +177,7 @@ class ChainLinkBuilder(BaseEntityFromRepoBuilder):
     
     def build_lazy_many(self) -> LazyWrapper[Iterable[ChainLink]]:
         lazy = LazyWrapper(
-            callable=self._build_lazy_many,
+            method=self._build_lazy_many,
             params={}
         )
         return lazy
