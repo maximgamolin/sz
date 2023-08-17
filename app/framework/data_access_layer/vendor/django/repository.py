@@ -13,16 +13,86 @@ from app.framework.data_access_layer.values import Empty
 
 
 class QoOrmMapperLine:
+    """
+    Хранит в себе настройку как конвертировать поле из ABSQueryObject в поле для фильтрации валидного для ORM
+
+    Examples:
+        >>> from app.framework.data_access_layer.query_object.base import ABSQueryObject
+        >>> from dataclasses import dataclass
+        >>> from typing import NewType
+        >>>
+        >>> SomeModelId = NewType('SomeModelId', int)
+        >>>
+        >>> @dataclass
+        >>> class SomeQO(ABSQueryObject):
+        >>>     some_model_id: SomeModelId
+        >>>     some_string_value: str
+        >>>
+        >>> class DjangoDbModel:
+        >>>     id = models.IntegerField(...)
+        >>>     str_field = models.CharField(...)
+        >>>
+        >>> class DjangoDBModelRepository:
+        >>>
+        >>>     ...
+        >>>
+        >>>     @property
+        >>>     def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        >>>         return [
+        >>>             QoOrmMapperLine(orm_field_name='id',
+        >>>                             qo_field_name='some_model_id',
+        >>>                             modifier=int),
+        >>>             QoOrmMapperLine(orm_field_name='str_field',
+        >>>                             qo_field_name='some_string_value'),
+        >>>         ]
+        >>>
+    """
 
     __slots__ = 'orm_field_name', 'qo_field_name', 'modifier'
 
     def __init__(self, orm_field_name: str, qo_field_name: str, modifier: Optional[Callable[[Any], Any]] = None):
+        """
+        :param orm_field_name: Название поля в ORM модели
+        :param qo_field_name: Название поля в QueryObject
+        :param modifier: Функция - модификатор, которая может конвертировать значение
+            в валидное значение для фильтрации
+        """
         self.orm_field_name = orm_field_name
         self.qo_field_name = qo_field_name
         self.modifier = modifier or (lambda x: x)
 
 
 class OoOrmMapperLine:
+    """
+    Хранит в себе настройку, как конвертировать поле из ABSOrderObject в поле для сортировки ORM model
+
+    Examples:
+        >>> from app.framework.data_access_layer.order_object.base import ABSOrderObject
+        >>> from dataclasses import dataclass
+        >>> from datetime import datetime
+        >>> from typing import NewType
+        >>>
+        >>> SomeModelId = NewType('SomeModelId', int)
+        >>>
+        >>> @dataclass
+        >>> class SomeOO(ABSOrderObject):
+        >>>     created_at: datetime
+        >>>
+        >>> class DjangoDbModel:
+        >>>     created_at = models.DatetimeField(...)
+        >>>
+        >>> class DjangoDBModelRepository:
+        >>>
+        >>>     ...
+        >>>
+        >>>     @property
+        >>>     def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        >>>         return [
+        >>>             OoOrmMapperLine(orm_field_name='created_at',
+        >>>                             oo_field_name='created_at')
+        >>>         ]
+        >>>
+    """
 
     __slots__ = 'orm_field_name', 'oo_field_name'
 
@@ -32,16 +102,33 @@ class OoOrmMapperLine:
 
 
 class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
+    """
+    Миксин, который добавляет возможность простой конвертации полей ABSQueryObject и ABSOrderObject в поля ORM модели
+    """
 
     @property
     def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        """
+        Описываются правила конвертации ABSQueryObject -> ORM model, подробности в примерах QoOrmMapperLine
+        :return: Список настроенных QoOrmMapperLine
+        """
         raise NotImplementedError()
 
     @property
     def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        """
+        Описываются правила конвертации ABSOrderObject -> ORM model, подробности в примерах OoOrmMapperLine
+        :return: Список настроенных OoOrmMapperLine
+        """
         raise NotImplementedError()
 
     def _extract_filter_val_for_orm(self, mapper_line: QoOrmMapperLine, val) -> dict:
+        """
+        Переводит спецаильные типы GTE, IN и тд в подходящие для orm
+        :param mapper_line:
+        :param val:
+        :return:
+        """
         if isinstance(val, IN):
             orm_query_param_name = f'{mapper_line.orm_field_name}__in'
             value = [mapper_line.modifier(i) for i in val.value]
@@ -55,6 +142,11 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
 
 
     def _qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
+        """
+        Конвертация ABSQueryObject валидный для ORM объект
+        :param filter_params:
+        :return:
+        """
         if not filter_params:
             return {}
         filter_params_for_orm = {}
