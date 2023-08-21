@@ -124,10 +124,10 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
 
     def _extract_filter_val_for_orm(self, mapper_line: QoOrmMapperLine, val) -> dict:
         """
-        Переводит спецаильные типы GTE, IN и тд в подходящие для orm
+        Переводит специальные типы GTE, IN и тд в подходящие для orm
         :param mapper_line:
-        :param val:
-        :return:
+        :param val: значение из ABSQueryObject
+        :return: словарь где в ключе название поля из orm, а в значении, значение поля валидное для django orm
         """
         if isinstance(val, IN):
             orm_query_param_name = f'{mapper_line.orm_field_name}__in'
@@ -144,14 +144,14 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
     def _qo_to_filter_params(self, filter_params: Optional[ABSQueryObject]) -> dict:
         """
         Конвертация ABSQueryObject валидный для ORM объект
-        :param filter_params:
-        :return:
+        :param filter_params: Заполненный объект фильтрации
+        :return: Словарь, который можно вставить в django orm .filter()
         """
         if not filter_params:
             return {}
         filter_params_for_orm = {}
         for mapper_line in self._qo_orm_fields_mapping:
-            field_val = getattr(filter_params, mapper_line.qo_field_name)
+            field_val = getattr(filter_params, mapper_line.qo_field_name)  # TODO хрупко и непонятно упадет
             if field_val is Empty():
                 continue
             filter_params_for_orm.update(
@@ -160,12 +160,23 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
         return filter_params_for_orm
 
     def _extract_order_values_to_orm(self, mapper_line: OoOrmMapperLine, val) -> str:
+        """
+        Переводит конкретное поле ABSOrderObject в поле ORM
+        :param mapper_line:
+        :param val: Значение из ABSOrderObject
+        :return:
+        """
         if isinstance(val, ASC):
             return mapper_line.orm_field_name
         if isinstance(val, DESC):
             return f'-{mapper_line.orm_field_name}'
 
     def _oo_to_order_params(self, order_params: Optional[ABSOrderObject]) -> list:
+        """
+        Переработка ABSOrderObject в валидный список параметров сортировки для django orm .order_by()
+        :param order_params:
+        :return: список параметров сортировки, валидный для django
+        """
         if not order_params:
             return []
         order_params_for_orm = []
@@ -178,6 +189,30 @@ class DjangoNoQueryBuilderRepositoryMixin(NoQueryBuilderRepositoryMixin, ABC):
 
 
 class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
+    """
+    Репозиторий подходящий для django моделей
+
+    Examples:
+        >>> class UserRepository(DjangoRepository):
+        >>>     model = CustomUser
+        >>>     def _orm_to_dto(self, orm_model: CustomUser) -> User:
+        >>>         return User(
+        >>>             user_id=UserID(orm_model.id)
+        >>>         )
+        >>>
+        >>>     @property
+        >>>     def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
+        >>>         return [
+        >>>             QoOrmMapperLine(
+        >>>                 qo_field_name='user_id',
+        >>>                 orm_field_name='id',
+        >>>                 modifier=int
+        >>>             )
+        >>>
+        >>>     @property
+        >>>     def _oo_orm_fields_mapping(self) -> list[OoOrmMapperLine]:
+        >>>         return []
+    """
 
     model: ORMModel = None
 
