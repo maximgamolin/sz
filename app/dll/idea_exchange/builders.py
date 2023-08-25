@@ -21,7 +21,7 @@ class ManagerBuilder(BaseEntityFromRepoBuilder):
     
     def build_lazy_many(self) -> LazyWrapper[DBResultGenerator[Manager]]:
         lazy = LazyWrapper(
-            callable=self._manager_repo.fetch_many,
+            method=self._manager_repo.fetch_many,
             params={"filter_params": self._manager_qo}
         )
         return lazy
@@ -64,7 +64,7 @@ class ManagerGroupsBuilder(BaseEntityFromRepoBuilder):
     
     def build_lazy_many(self) -> LazyWrapper[Iterable[ManagerGroup]]:
         lazy = LazyWrapper(
-            callable=self._build_lazy_many,
+            method=self._build_lazy_many,
             params={}
         )
         return lazy
@@ -112,7 +112,7 @@ class ActorBuilder(BaseEntityFromRepoBuilder):
     
     def build_lazy(self) -> LazyWrapper[Actor]:
         lazy = LazyWrapper(
-            callable=self._build_lazy_one,
+            method=self._build_lazy_one,
             params={}
         )
         return lazy
