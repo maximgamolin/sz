@@ -1,0 +1,95 @@
+@startuml
+package Storage{
+    class AnyStorageOrORM
+}
+
+package Mapper{
+    class ABSMapper
+}
+
+
+
+package DataAccessLayer {
+    package Lazy{
+        class LazyLoaderInEntity
+        class LazyWrapper
+
+        LazyLoaderInEntity <-- LazyWrapper
+    }
+
+    class ABSRepository
+    class ABSQueryObject
+    class ABSOrderObject
+    class QueryParamComparison
+    class OrderParamComparison
+    class ABSRepoSource
+
+
+
+    ABSRepository <-- ABSQueryObject
+    ABSRepository <-- ABSOrderObject
+
+    ABSQueryObject *-- QueryParamComparison
+    ABSRepository <-- QueryParamComparison
+
+    ABSOrderObject *-- OrderParamComparison
+    ABSRepository <-- OrderParamComparison
+
+    ABSRepository <-- ABSRepoSource
+}
+
+package DataLogicLayer {
+    class ABSEntityFromRepoBuilder
+    class BaseUnitOfWork
+
+
+    ABSEntityFromRepoBuilder <-- ABSEntityFromRepoBuilder
+    BaseUnitOfWork <-- ABSEntityFromRepoBuilder
+}
+
+package Domain{
+    class IAggregate
+    class IDTO
+    class IEntity
+
+    IAggregate <-- IEntity
+    IAggregate <-- IDTO
+    IEntity <-- IDTO
+}
+
+
+ABSRepository <-- AnyStorageOrORM
+ABSRepoSource <-- AnyStorageOrORM
+
+ABSEntityFromRepoBuilder <-- ABSQueryObject
+ABSEntityFromRepoBuilder <-- ABSOrderObject
+ABSEntityFromRepoBuilder <-- ABSRepository
+ABSEntityFromRepoBuilder <-- LazyWrapper
+ABSEntityFromRepoBuilder <-- OrderParamComparison
+ABSEntityFromRepoBuilder <-- QueryParamComparison
+
+
+ABSRepository <-- ABSMapper
+ABSMapper <-- AnyStorageOrORM
+
+ABSRepository <-- IDTO
+ABSRepository <-- IEntity
+
+ABSMapper <-- IDTO
+ABSMapper <-- IEntity
+
+ABSEntityFromRepoBuilder <-- IDTO
+ABSEntityFromRepoBuilder <-- IEntity
+ABSEntityFromRepoBuilder <-- IAggregate
+
+BaseUnitOfWork <-- IDTO
+BaseUnitOfWork <-- IEntity
+BaseUnitOfWork <-- IAggregate
+BaseUnitOfWork <-- ABSQueryObject
+BaseUnitOfWork <-- ABSOrderObject
+BaseUnitOfWork <-- ABSRepository
+BaseUnitOfWork <-- LazyWrapper
+BaseUnitOfWork <-- OrderParamComparison
+BaseUnitOfWork <-- QueryParamComparison
+
+@enduml

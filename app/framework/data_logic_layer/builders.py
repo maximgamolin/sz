@@ -4,7 +4,7 @@ from app.framework.data_access_layer.lazy import LazyWrapper
 
 T = TypeVar('T')
 
-class BaseEntityFromRepoBuilder(Generic[T]):
+class ABSEntityFromRepoBuilder(Generic[T]):
     """
     Билдер собирать сущности и агрегаты извлекаемые из хранилища
     """

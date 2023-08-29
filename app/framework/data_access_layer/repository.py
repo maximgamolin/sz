@@ -6,9 +6,7 @@ from app.framework.data_access_layer.db_result_generator import DBResultGenerato
 from app.framework.data_access_layer.order_object.base import ABSOrderObject
 from app.framework.data_access_layer.query_object.base import ABSQueryObject
 from app.framework.domain.abs import IDTO, IEntity
-from app.framework.mapper import ABSMapper
 
-ModelEntityMapperClass = TypeVar('ModelEntityMapperClass', bound=ABSMapper)
 ORMModel = TypeVar('ORMModel')
 ISessionTypeVar = TypeVar('ISessionTypeVar')
 
@@ -50,8 +48,6 @@ class ABSRepository(abc.ABC, Generic[EntityTypeVar]):
     """
 
     __slots__ = ('session', )
-
-    mapper: ModelEntityMapperClass
 
     def __init__(self, session: ISessionTypeVar):
         """

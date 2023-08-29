@@ -10,10 +10,10 @@ from app.framework.data_access_layer.db_result_generator import DBResultGenerato
 from app.framework.data_access_layer.lazy import LazyWrapper
 from app.framework.data_access_layer.query_object.values import IN
 from app.framework.data_access_layer.repository import ABSRepository
-from app.framework.data_logic_layer.builders import BaseEntityFromRepoBuilder
+from app.framework.data_logic_layer.builders import ABSEntityFromRepoBuilder
 
 
-class ManagerBuilder(BaseEntityFromRepoBuilder):
+class ManagerBuilder(ABSEntityFromRepoBuilder):
     def __init__(self, manager_repo: ABSRepository, manager_qo: ManagerQO):
         super().__init__()
         self._manager_repo = manager_repo
@@ -30,13 +30,13 @@ class ManagerBuilder(BaseEntityFromRepoBuilder):
         yield from self._manager_repo.fetch_many(filter_params=self._manager_qo)
 
 
-class ManagerGroupsBuilder(BaseEntityFromRepoBuilder):
+class ManagerGroupsBuilder(ABSEntityFromRepoBuilder):
     
     def __init__(
             self, 
             group_repo: ABSRepository, 
             group_qo: SiteGroupQO, 
-            manager_builder: Type[BaseEntityFromRepoBuilder],
+            manager_builder: Type[ABSEntityFromRepoBuilder],
             manager_repo: ABSRepository
             ):
         super().__init__()
@@ -70,7 +70,7 @@ class ManagerGroupsBuilder(BaseEntityFromRepoBuilder):
         return lazy
 
 
-class ActorBuilder(BaseEntityFromRepoBuilder):
+class ActorBuilder(ABSEntityFromRepoBuilder):
     
     def __init__(
             self, 
@@ -78,7 +78,7 @@ class ActorBuilder(BaseEntityFromRepoBuilder):
             actor_qo: ActorQO,
             manager_groups_builder: Type['ManagerGroupsBuilder'],
             group_repo: ABSRepository, 
-            manager_builder: Type[BaseEntityFromRepoBuilder],
+            manager_builder: Type[ABSEntityFromRepoBuilder],
             manager_repo: ABSRepository
         ):
         super().__init__()
@@ -117,7 +117,7 @@ class ActorBuilder(BaseEntityFromRepoBuilder):
         )
         return lazy
 
-class ChainLinkBuilder(BaseEntityFromRepoBuilder):
+class ChainLinkBuilder(ABSEntityFromRepoBuilder):
     
     def __init__(
             self,
