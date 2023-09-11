@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Generic, Optional, Callable, Any
+from typing import Iterable, Optional, Callable, Any
 
 from app.exceptions.orm import NotFoundException
 from app.framework.data_access_layer.basic import EntityTypeVar
@@ -265,8 +265,14 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
         orm_ideas.iterator(chunk_size=chunk_size)
         return DBResultGenerator((self._orm_to_dto(i) for i in orm_ideas))
 
-    def add(self, domain_model: Generic[EntityTypeVar]) -> None:
+    def add(self, domain_model: EntityTypeVar) -> None:
         pass
 
-    def update_one(self, domain_model: Generic[EntityTypeVar]) -> None:
+    def update_one(self, domain_model: EntityTypeVar) -> None:
+        pass
+
+    def add_many(self, domain_model_sequence: Iterable[EntityTypeVar]) -> None:
+        pass
+
+    def update_many(self, domain_model: Iterable[EntityTypeVar]) -> None:
         pass

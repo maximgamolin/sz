@@ -1,23 +1,31 @@
-from typing import Type
+from typing import Type, Optional
 
 from app.cases.idea_exchange.dto import IdeaUoDto
+from app.dal.idea_exchange.oo import IdeaOO
 from app.dal.idea_exchange.qo import IdeaQO, ChainQO, AuthorQO, ManagerQO
 from app.dll.idea_exchange.uow import IdeaUOW
+from app.domain.auth.core import UserID
 from app.domain.idea_exchange.main import Idea
 from app.domain.idea_exchange.types import IdeaID
 from app.exceptions.auth import PermissionDenied
 from app.exceptions.idea_exchange import IdeaIsNotEdiatable, HasNoPermissions
+from app.framework.data_access_layer.order_object.values import ASC
 
 
 class IdeaCase:
 
-    def __init__(self, uow_cls: Type[IdeaUOW]):
+    def __init__(self, uow_cls: Type[IdeaUOW] = IdeaUOW):
         self.uow = uow_cls()
 
-    def my_ideas(self, author_id, offset: int, limit: int) -> list[IdeaUoDto]:
+    def user_ideas(self, author_id, offset: int = 0, limit: Optional[int] = None) -> list[IdeaUoDto]:
         with self.uow:
-            idea_qo = IdeaQO()
-            ideas = self.uow.fetch_ideas(idea_qo)
+            idea_qo = IdeaQO(
+                author_id=UserID(author_id),
+            )
+            idea_oo = IdeaOO(
+                created_at=ASC()
+            )
+            ideas = self.uow.fetch_ideas(idea_qo, idea_oo, offset=offset, limit=limit)
             return [self.uow.convert_idea_to_output(i) for i in ideas]
 
     def create_idea(self, user_id: int, body: str, chain_id: int, name: str) -> None:
