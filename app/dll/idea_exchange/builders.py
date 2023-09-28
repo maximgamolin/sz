@@ -1,10 +1,7 @@
 from typing import Iterable, Type
 
-from app.dal.auth.qo import SiteGroupQO
-from app.dal.auth.qo import UserQO
-from app.dal.idea_exchange.dto import ActorDalDto
-from app.dal.idea_exchange.dto import ChainDalDto
-from app.dal.idea_exchange.dto import ChainLinkDalDto
+from app.dal.auth.qo import SiteGroupQO, UserQO
+from app.dal.idea_exchange.dto import ActorDalDto, ChainDalDto, ChainLinkDalDto
 from app.dal.idea_exchange.oo import ChainLinkOO
 from app.dal.idea_exchange.qo import ManagerQO, ActorQO, ChainLinkQO, ChainQO
 from app.domain.idea_exchange.main import Manager, ManagerGroup, Actor, ChainLink, Chain, ChainEditor

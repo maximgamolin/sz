@@ -1,13 +1,18 @@
-from abc import ABC
+from typing import TYPE_CHECKING
 
+from app.dal.auth.repo import UserRepository
 from app.dal.idea_exchange.dto import IdeaDalDto, ChainDalDto, ActorDalDto, ChainLinkDalDto
+from app.dal.idea_exchange.mapper import ManagerMapper
 from app.domain.auth.core import UserID
 from app.domain.idea_exchange.types import IdeaID, ChainID, ChainLinkID, ActorID
 from app.framework.data_access_layer.vendor.django.repository import DjangoRepository, OoOrmMapperLine, QoOrmMapperLine
 from idea.models import Idea, Chain, Actor, ChainLink
 
-from app.dal.auth.repo import UserRepository
-from app.dal.idea_exchange.mapper import ManagerMapper
+if TYPE_CHECKING:
+    from app.domain.idea_exchange.main import Idea as DomainIdea, Chain as DomainChain, \
+        ChainLink as DomainChainLink, Actor as DomainActor
+    from accounts.models import CustomUser
+    from app.domain.idea_exchange.main import Manager as DomainManager
 
 
 class IdeaRepository(DjangoRepository):
@@ -52,8 +57,24 @@ class IdeaRepository(DjangoRepository):
             current_chain_link_id=ChainLinkID(idea.current_chain_link_id),
             is_deleted=idea.is_deleted,
             created_at=idea.created_at,
-            updated_at=idea.updated_at
+            updated_at=idea.updated_at,
+            idea_uid=idea.idea_uid
         )
+
+    def _dto_to_orm(self, dto: 'DomainIdea') -> Idea:
+        return Idea(
+            id=dto.idea_id,
+            author_id=dto.get_author_id(),
+            name=dto.name,
+            body=dto.body,
+            idea_uid=dto.get_idea_uid(),
+            chain_id=dto.get_chain_id(),
+            current_chain_link_id=dto.get_current_chain_link_id(),
+            is_deleted=dto.is_deleted(),
+            created_at=dto.get_created_at(),
+            updated_at=dto.get_updated_at(),
+        )
+
 
 
 class ChainRepository(DjangoRepository):
@@ -96,6 +117,9 @@ class ChainRepository(DjangoRepository):
             created_at=chain.created_at,
             updated_at=chain.updated_at
         )
+
+    def _dto_to_orm(self, dto: 'DomainChain') -> Chain:
+        pass
 
 
 class ChainLinkDjangoRepository(DjangoRepository):
@@ -141,6 +165,9 @@ class ChainLinkDjangoRepository(DjangoRepository):
             is_deleted=orm_model.is_deleted
         )
 
+    def _dto_to_orm(self, dto: 'DomainChainLink') -> ChainLink:
+        pass
+
 
 class ActorRepository(DjangoRepository):
 
@@ -153,6 +180,9 @@ class ActorRepository(DjangoRepository):
             manager_ids=list(orm_model.managers.values_list('id', flat=True)),
             groups_ids=list(orm_model.groups.values_list('id', flat=True))
         )
+
+    def _dto_to_orm(self, dto: 'DomainActor') -> Actor:
+        pass
 
     @property
     def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
@@ -174,5 +204,5 @@ class ActorRepository(DjangoRepository):
 
 class ManagerRepository(UserRepository):
 
-    def _orm_to_dto(self, orm_model: 'CustomUser') -> 'Manager':
+    def _orm_to_dto(self, orm_model: 'CustomUser') -> 'DomainManager':
         return ManagerMapper().from_orm_to_domain(orm_model)

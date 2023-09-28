@@ -96,7 +96,7 @@ class IdeaFactory:
             name=Empty()
     ) -> Idea:
         return Idea(
-            idea_id=idea_id if not isinstance(idea_id, Empty) else IdeaID(randrange(1, 100)),
+            idea_storage_id=idea_id if not isinstance(idea_id, Empty) else IdeaID(randrange(1, 100)),
             author=author,
             body=body if not isinstance(body, Empty) else generate_random_string(10),
             chain=chain,

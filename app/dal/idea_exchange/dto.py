@@ -14,6 +14,7 @@ class IdeaDalDto(IDTO):
     body: str
     chain_id: ChainID
     current_chain_link_id: ChainLinkID
+    idea_uid: str
     is_deleted: bool
     created_at: datetime
     updated_at: datetime

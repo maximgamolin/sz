@@ -39,6 +39,7 @@ class IdeaUoDto:
     is_accepted: bool
     is_rejected: bool
     chain_links: list[IdeaChanLinkUoDto]
+    idea_uid: str
 
     def to_dict(self):
         return {

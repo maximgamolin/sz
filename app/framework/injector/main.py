@@ -109,8 +109,8 @@ def inject(name: str):
     >>>         idea_repo_cls: Type[ABSRepository] = inject('IdeaRepository'),
     >>>         chain_repo_cls: Type[ABSRepository] = inject('ChainRepository')
     >>>         ):
-    >>>         self.idea_repo = idea_repo_cls()
-    >>>         self.chain_repo = chain_repo_cls()
+    >>>         self._idea_repo = idea_repo_cls()
+    >>>         self._chain_repo = chain_repo_cls()
 
     :param name: назвние класса обозначенное в секции name в файле с настройками yml
     :return:

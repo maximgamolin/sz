@@ -152,7 +152,7 @@ class TestIdeaExchangeCases(TestCase):
 
     def test_update_idea_on_wrong_chain_link(self):
         idea = Idea(
-            idea_id=IdeaID(randrange(1, 100)),
+            idea_storage_id=IdeaID(randrange(1, 100)),
             author=self.author,
             body='123',
             chain=self.chain,

@@ -1,21 +1,26 @@
 from abc import ABC
-from typing import Any
+from typing import TypeVar, Generic
 
-class QueryParamComparison(ABC):
+T = TypeVar('T')
+
+
+
+
+class QueryParamComparison(ABC, Generic[T]):
     """
     Базовый класс для управления параметрами фильтрации, используется только с ABSOrderObject
     """
-    def __init__(self, value: Any):
+    def __init__(self, value: T):
         self.value = value
 
 
-class GTE(QueryParamComparison):
+class GTE(QueryParamComparison[T]):
     """
     Эквивалент <=
     """
 
 
-class IN(QueryParamComparison):
+class IN(QueryParamComparison[T]):
     """
     Для проверки элементов в списке
     """

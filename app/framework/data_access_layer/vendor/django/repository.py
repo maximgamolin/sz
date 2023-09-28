@@ -272,7 +272,9 @@ class DjangoRepository(ABSRepository, DjangoNoQueryBuilderRepositoryMixin, ABC):
         pass
 
     def add_many(self, domain_model_sequence: Iterable[EntityTypeVar]) -> None:
-        pass
+        self.model.objects.bulk_create(
+            tuple(self._dto_to_orm(i) for i in domain_model_sequence)
+        )
 
     def update_many(self, domain_model: Iterable[EntityTypeVar]) -> None:
         pass

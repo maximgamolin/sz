@@ -15,11 +15,19 @@ class NoQueryBuilderRepositoryMixin:
     """
     Миксин для репозиториев, с методами конвертации
     """
+    @abc.abstractmethod
+    def _dto_to_orm(self, dto: Union[IDTO, IEntity]) -> ORMModel:
+        """
+        Конвертирует Доменный объект в ORM модель
+        :param dto: Доменная доменный объект
+        :return: ORM модель
+        """
+
 
     @abc.abstractmethod
     def _orm_to_dto(self, orm_model: ORMModel) -> Union[IDTO, IEntity]:
         """
-        Конвертирует ORM модель в Доменную сущность или Объект из хранилиза, отвязанный от ORM
+        Конвертирует ORM модель в Доменную сущность или Объект из хранилища, отвязанный от ORM
         :param orm_model: ORM модель которая должна быть сконвертированна
         :return: Заполненную сущность
         """

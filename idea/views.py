@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.views.generic import TemplateView, FormView
 
 from app.cases.idea_exchange.idea import IdeaCase
@@ -22,9 +24,21 @@ class AllMyIdeas(LoginRequiredMixin, TemplateView):
         ctx['ideas'] = case.user_ideas(author_id=self.request.user.id)
         return ctx
 
+class IdeaView(LoginRequiredMixin, TemplateView):
+
+        template_name = 'idea.html'
+        # TODO: Доделать шаблон
+
+        def get_context_data(self, **kwargs):
+            ctx = super(IdeaView, self).get_context_data(**kwargs)
+            case = IdeaCase()
+            ctx['idea'] = case.fetch_idea(idea_uid=kwargs['idea_uid'])
+            return ctx
+
 class IdeaCreate(LoginRequiredMixin, FormView):
 
     template_name = 'idea_create.html'
+    # TODO: Доделать шаблон
 
     class CreateIdeaForm(forms.Form):
         body = forms.CharField()
@@ -33,22 +47,18 @@ class IdeaCreate(LoginRequiredMixin, FormView):
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
+            self.chain_id.choices = [(i.id, i.name) for i in IdeaCase().uow.fetch_chains()]
 
 
     form_class = CreateIdeaForm
 
-    def get_context_data(self, **kwargs):
-        ctx = super(IdeaCreate, self).get_context_data(**kwargs)
-        case = IdeaCase()
-        ctx['ideas'] = case.create_idea()
-        return ctx
 
     def form_valid(self, form):
         case = IdeaCase()
-        case.create_idea(
+        idea = case.create_idea(
             user_id=self.request.user.id,
             body=form.cleaned_data['body'],
             chain_id=form.cleaned_data['chain_id'],
             name=form.cleaned_data['name']
         )
-        return super(IdeaCreate, self).form_valid(form)
+        return HttpResponseRedirect(redirect_to=reverse('idea:idea', kwargs={'idea_uid': idea.get_idea_uid()}))

@@ -14,6 +14,9 @@ class UserRepository(DjangoRepository):
             user_id=UserID(orm_model.id)
         )
 
+    def _dto_to_orm(self, dto: User) -> CustomUser:
+        pass
+
     @property
     def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:
         return [
@@ -37,6 +40,9 @@ class SiteGroupRepository(DjangoRepository):
             name=orm_model.name,
             users_ids_in_group=list(CustomUser.groups.through.objects.filter(sitegroup_id=orm_model.id).values_list('customuser_id', flat=True))
         )
+
+    def _dto_to_orm(self, dto: SiteGroupDalDto) -> SiteGroup:
+        pass
 
     @property
     def _qo_orm_fields_mapping(self) -> list[QoOrmMapperLine]:

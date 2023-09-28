@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Iterable, Union
+from uuid import uuid4
 
 from app.domain.auth.core import User, Group
 from app.domain.idea_exchange.types import ChainID, IdeaID, ChainLinkID, ActorID
@@ -306,7 +307,7 @@ class Chain(MetaManipulation):
 class Idea(MetaManipulation):
 
     __slots__ = (
-        'author', 'body', 'idea_id',
+        'author', 'body', 'idea_id', 'idea_uid', 'name',
         'current_chain_link', '_meta'
     )
 
@@ -321,19 +322,22 @@ class Idea(MetaManipulation):
             body: str,
             chain: Union[Chain, LazyWrapper[Chain]],
             current_chain_link: ChainLink,
-            idea_id: Optional[IdeaID] = None,
+            idea_uid: str,
+            idea_storage_id: Optional[IdeaID] = None,
             _meta_is_deleted: bool = False,
             _meta_is_changed: bool = False
     ):
         self.author = author
         self.body = body
         self.chain = chain
-        self.idea_id = idea_id
+        self.idea_id = idea_storage_id
         self.current_chain_link = current_chain_link
         self.name = name
+        self.idea_uid = idea_uid
         self._meta = BaseMeta(
             is_deleted=_meta_is_deleted,
-            is_changed=_meta_is_changed
+            is_changed=_meta_is_changed,
+            id_from_storage=idea_storage_id
         )
 
     @classmethod
@@ -345,11 +349,25 @@ class Idea(MetaManipulation):
             author=author,
             chain=chain,
             current_chain_link=chain.first_chain_link(),
-            name=name
+            name=name,
+            idea_uid=str(uuid4())
         )
         idea._meta.is_changed = True
         idea._meta.is_deleted = False
         return idea
+
+    def __eq__(self, other):
+        return (
+            self.author == other.author and
+            self.body == other.body and
+            self.chain == other.chain and
+            self.current_chain_link == other.current_chain_link and
+            self.name == other.name and
+            self.idea_uid == other.idea_uid
+        )
+
+    def get_idea_uid(self) -> str:
+        return self.idea_uid
 
     def mark_deleted(self):
         self._meta.is_deleted = True
@@ -386,3 +404,12 @@ class Idea(MetaManipulation):
 
     def is_rejected(self):
         return self.current_chain_link.chain_link_id == self.chain.reject_chain_link.chain_link_id
+
+    def get_author_id(self) -> int:
+        return self.author.user_id
+
+    def get_chain_id(self) -> int:
+        return self.chain.chain_id
+
+    def get_current_chain_link_id(self) -> int:
+        return self.current_chain_link.chain_link_id
