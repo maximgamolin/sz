@@ -38,6 +38,8 @@ class IdeaRepository(DjangoRepository):
                             modifier=int),
             QoOrmMapperLine(orm_field_name='is_deleted',
                             qo_field_name='is_deleted'),
+            QoOrmMapperLine(orm_field_name='idea_uid',
+                            qo_field_name='idea_uid'),
         ]
 
     @property
