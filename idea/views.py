@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import TemplateView, FormView
 
-from app.cases.idea_exchange.idea import IdeaCase
+from app.cases.idea_exchange.idea import IdeaCase, ChainCase
 
 
 class IndexView(TemplateView):
@@ -47,7 +47,10 @@ class IdeaCreate(LoginRequiredMixin, FormView):
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.chain_id.choices = [(i.id, i.name) for i in IdeaCase().uow.fetch_chains()]
+            chain_case = ChainCase()
+            self.fields['chain_id'].choices = [
+                (i.chain_id, f'Chain: {i.chain_id}') for i in chain_case.fetch_allowed_chains()
+            ]
 
 
     form_class = CreateIdeaForm

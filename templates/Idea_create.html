@@ -1,25 +1,52 @@
 {% extends "frame.html" %}
 {% load static %}
 {% block content %}
-    <main id="main" class="main">
-        <section class="section">
-            <div class="row align-items-top">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-header">{{ idea.idea_id }} - {{ idea.name }}</div>
-                        <div class="card-body">
-                            {{ idea.body }}
-                        </div>
-                        <div class="card-footer">
-                            {% for chain_link in idea.chain_links %}
-                                {% if chain_link.is_current %}
-                                    <h5 class="card-title">{{ chain_link.chain_link_id }} - {{ chain_link.name }}</h5>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+  <main id="main" class="main">
+    <section class="section">
+      <div class="row align-items-top">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Создание идеи</h5>
+              <form method="post">
+    {% csrf_token %}
+    {{ form.errors }}
+    <div class="row mb-3">
+        <label for="{{ form.name.id_for_label }}" class="col-sm-2 col-form-label">{{ form.name.label }}</label>
+        <div class="col-sm-10">
+            <input type="text" name="{{ form.name.name }}" class="form-control" id="{{ form.name.id_for_label }}" {% if form.name.value != None %}value="{{ form.name.value|stringformat:'s' }}"{% endif %}>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="{{ form.body.id_for_label }}" class="col-sm-2 col-form-label">{{ form.body.label }}</label>
+        <div class="col-sm-10">
+            <textarea name="{{ form.body.name }}" class="form-control" style="height: 100px" id="{{ form.body.id_for_label }}">{% if form.body.value != None %}{{ form.body.value|stringformat:'s' }}{% endif %}</textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-sm-2 col-form-label" for="{{ form.chain_id.id_for_label }}">{{ form.chain_id.label }}</label>
+        <div class="col-sm-10">
+            <select name="{{ form.chain_id.name }}" class="form-select" id="{{ form.chain_id.id_for_label }}">
+                {% for choice in form.chain_id.field.choices %}
+                    <option value="{{ choice.0 }}" {% if form.chain_id.value == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Submit Button</label>
+        <div class="col-sm-10">
+            <button type="submit" class="btn btn-primary">Submit Form</button>
+        </div>
+    </div>
+</form>
+<!-- End General Form Elements -->
+
             </div>
-        </section>
-    </main>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 {% endblock %}<!-- End #main -->

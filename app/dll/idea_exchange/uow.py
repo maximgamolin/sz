@@ -129,6 +129,22 @@ class IdeaUOW(BaseUnitOfWork):
 
 class ChainUOW(BaseUnitOfWork):
 
+    def __init__(
+            self,
+            chain_repo_cls: Type[ABSRepository] = inject('ChainRepository'),
+            actor_repo_cls: Type[ABSRepository] = inject('ActorRepository'),
+            user_repo_cls: Type[ABSRepository] = inject('UserRepository'),
+            group_repo_cls: Type[ABSRepository] = inject('SiteGroupRepository'),
+            chain_link_repository_cls: Type[ABSRepository] = inject('ChainLinkRepository'),
+            manager_repository: Type[ABSRepository] = inject('ManagerRepository')
+    ):
+        self._chain_repo = chain_repo_cls(None)
+        self._actor_repo = actor_repo_cls(None)
+        self._user_repo = user_repo_cls(None)
+        self._group_repo = group_repo_cls(None)
+        self._chain_link_repository = chain_link_repository_cls(None)
+        self._manager_repository = manager_repository(None)
+
     def fetch_chain_editor(self, query_object: ChainEditorQO) -> ChainEditor:
         pass
 
@@ -180,3 +196,17 @@ class ChainUOW(BaseUnitOfWork):
 
     def add_chain_for_save(self, chain: Chain):
         pass
+
+    def fetch_chains(self, query_object: ChainQO) -> list[Chain]:
+        chain_builder = ChainBuilder(
+            chain_repo=self._chain_repo,
+            chain_qo=query_object,
+            chain_link_builder_class=ChainLinkBuilder,
+            chain_link_repo=self._chain_link_repository,
+            actor_repo=self._actor_repo,
+            group_repo=self._group_repo,
+            manager_repo=self._manager_repository,
+            user_repo=self._user_repo
+        )
+        return list(chain_builder.build_many())
+
