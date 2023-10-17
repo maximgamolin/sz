@@ -9,15 +9,26 @@
                         <div class="card">
                             <div class="card-header"><a href="{% url "idea:idea" idea.idea_uid %}">{{ idea.name }}</a></div>
                             <div class="card-body">
-
-                                {{ idea.body }}
+                              {{ idea.body|safe }}
                             </div>
                             <div class="card-footer">
-                                {% for chain_link in idea.chain_links %}
-                                    {% if chain_link.is_current %}
-                                        <h5 class="card-title">{{ chain_link.chain_link_id }} - {{ chain_link.name }}</h5>
-                                    {% endif %}
-                                {% endfor %}
+                                <nav style="--bs-breadcrumb-divider: '>';">
+                                  {% if idea.is_accepted %}
+                                    <span class="badge rounded-pill bg-success">Ваша идея принята!</span>
+                                  {% elif idea.is_rejected %}
+                                    <span class="badge rounded-pill bg-danger">Ваша идея отклонена</span>
+                                  {% else %}
+                                    <ol class="breadcrumb">
+                                      {% for chain_link in idea.chain_links %}
+                                          {% if chain_link.is_current %}
+                                            <li class="breadcrumb-item active">{{ chain_link.name }}</li>
+                                          {% else %}
+                                            <li class="breadcrumb-item">{{ chain_link.name }}</li>
+                                          {% endif %}
+                                      {% endfor %}
+                                    </ol>
+                                  {% endif %}
+                                </nav>
                             </div>
                         </div><!-- End Card with header and footer -->
                     {% endfor %}

@@ -38,19 +38,19 @@ class IdeaView(LoginRequiredMixin, TemplateView):
 class IdeaCreate(LoginRequiredMixin, FormView):
 
     template_name = 'idea_create.html'
-    # TODO: Доделать шаблон
 
     class CreateIdeaForm(forms.Form):
         body = forms.CharField()
         name = forms.CharField()
         chain_id = forms.ChoiceField(choices=[])
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, model_instance=None, **kwargs):
             super().__init__(*args, **kwargs)
             chain_case = ChainCase()
             self.fields['chain_id'].choices = [
                 (i.chain_id, f'Chain: {i.chain_id}') for i in chain_case.fetch_allowed_chains()
             ]
+
 
 
     form_class = CreateIdeaForm
@@ -65,3 +65,20 @@ class IdeaCreate(LoginRequiredMixin, FormView):
             name=form.cleaned_data['name']
         )
         return HttpResponseRedirect(redirect_to=reverse('idea:idea', kwargs={'idea_uid': idea.get_idea_uid()}))
+
+
+class IdeaUpdate(LoginRequiredMixin, FormView):
+
+    template_name = 'idea_update.html'
+
+    class UpdateIdeaForm(forms.Form):
+        body = forms.CharField()
+        name = forms.CharField()
+        chain_id = forms.ChoiceField(choices=[])
+
+        def __init__(self, *args, model_instance=None, **kwargs):
+            super().__init__(*args, **kwargs)
+            chain_case = ChainCase()
+            self.fields['chain_id'].choices = [
+                (i.chain_id, f'Chain: {i.chain_id}') for i in chain_case.fetch_allowed_chains()
+            ]

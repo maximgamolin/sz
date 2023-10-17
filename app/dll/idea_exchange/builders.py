@@ -8,6 +8,7 @@ from app.domain.idea_exchange.main import Manager, ManagerGroup, Actor, ChainLin
 from app.domain.idea_exchange.types import ChainLinkID
 from app.framework.data_access_layer.db_result_generator import DBResultGenerator
 from app.framework.data_access_layer.lazy import LazyWrapper
+from app.framework.data_access_layer.order_object.values import ASC
 from app.framework.data_access_layer.query_object.values import IN
 from app.framework.data_access_layer.repository import ABSRepository
 from app.framework.data_logic_layer.builders import ABSEntityFromRepoBuilder
@@ -235,7 +236,11 @@ class ChainBuilder(ABSEntityFromRepoBuilder):
     def _build_chain(self, chain_dal_dto: ChainDalDto) -> Chain:
         chain_links_qo = ChainLinkQO(
             chain_id=chain_dal_dto.chain_id,
-            is_deleted=False
+            is_deleted=False,
+            is_technical=False
+        )
+        chain_link_oo = ChainLinkOO(
+            order=ASC()
         )
         chain_links = self._chain_link_builder_class(
             chain_link_repo=self._chain_link_repo,
@@ -243,6 +248,7 @@ class ChainBuilder(ABSEntityFromRepoBuilder):
             actor_repo=self._actor_repo,
             group_repo=self._group_repo,
             manager_repo=self._manager_repo,
+            chain_link_oo=chain_link_oo
         )
         accept_chain_link = self._fetch_one_chain_link(chain_link_id=chain_dal_dto.accept_chain_link_id)
         reject_chain_link = self._fetch_one_chain_link(chain_link_id=chain_dal_dto.reject_chain_link_id)

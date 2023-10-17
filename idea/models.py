@@ -41,3 +41,6 @@ class Idea(BaseModel):
     chain = models.ForeignKey('idea.Chain', verbose_name='Цепочка', on_delete=models.CASCADE)
     current_chain_link = models.ForeignKey('idea.ChainLink', verbose_name='Текущий этап', on_delete=models.CASCADE)
     idea_uid = models.CharField(verbose_name='Уникальный идентификатор', max_length=255, unique=True)
+
+    def __str__(self):
+        return f'{self.id} - {self.name}'
